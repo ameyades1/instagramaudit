@@ -2,17 +2,15 @@ import base64
 import json
 import os
 import tempfile
-import time
 from datetime import datetime, timezone, timedelta
 
-IST = timezone(timedelta(hours=5, minutes=30))
-
-import instaloader
 import requests
+from apify_client import ApifyClient
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
+IST = timezone(timedelta(hours=5, minutes=30))
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
@@ -36,7 +34,6 @@ def get_logged_shortcodes(sheets, sheet_id):
         .execute()
     )
     rows = result.get("values", [])
-    # skip header row
     return {row[0] for row in rows[1:] if row}
 
 
@@ -48,7 +45,6 @@ def upload_to_drive(drive, folder_id, file_path, filename):
         .create(body=metadata, media_body=media, fields="id,webViewLink")
         .execute()
     )
-    # make the file readable by anyone with the link
     drive.permissions().create(
         fileId=file["id"],
         body={"type": "anyone", "role": "reader"},
@@ -67,7 +63,6 @@ def append_row(sheets, sheet_id, row):
 
 
 def main():
-    ig_username = os.environ["IG_USERNAME"]
     handle = os.environ["INSTAGRAM_HANDLE"]
     sheet_id = os.environ["GOOGLE_SHEET_ID"]
     folder_id = os.environ["GOOGLE_DRIVE_FOLDER_ID"]
@@ -75,59 +70,50 @@ def main():
     sheets, drive = get_google_clients()
     logged = get_logged_shortcodes(sheets, sheet_id)
 
-    L = instaloader.Instaloader(download_pictures=False, download_videos=False,
-                                 download_video_thumbnails=False, download_geotags=False,
-                                 download_comments=False, save_metadata=False,
-                                 post_metadata_txt_pattern="")
+    client = ApifyClient(os.environ["APIFY_API_KEY"])
+    run = client.actor("apify/instagram-profile-scraper").call(
+        run_input={"usernames": [handle]}
+    )
 
-    # write session file from secret and load it (avoids checkpoint errors from raw password login)
-    session_b64 = os.environ["IG_SESSION"]
-    session_path = f"/tmp/session-{ig_username}"
-    with open(session_path, "wb") as f:
-        f.write(base64.b64decode(session_b64))
-    L.load_session_from_file(ig_username, session_path)
-    time.sleep(5)
+    items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+    if not items:
+        print("No data returned from Apify.")
+        return
 
-    profile = instaloader.Profile.from_username(L.context, handle)
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=48)
-
-    new_posts = []
-    for post in profile.get_posts():
-        if post.date_utc < cutoff:
-            break
-        if post.shortcode not in logged:
-            new_posts.append(post)
+    posts = items[0].get("latestPosts", [])
+    new_posts = [p for p in posts if p["shortCode"] not in logged]
 
     if not new_posts:
         print("No new posts found.")
         return
 
-    # process oldest first so the sheet is in chronological order
-    new_posts.reverse()
+    new_posts.sort(key=lambda p: p["timestamp"])
 
     with tempfile.TemporaryDirectory() as tmpdir:
         for post in new_posts:
-            media_url = post.url  # thumbnail for both images and videos
-            filename = f"{post.shortcode}.jpg"
+            shortcode = post["shortCode"]
+            filename = f"{shortcode}.jpg"
             file_path = os.path.join(tmpdir, filename)
 
-            response = requests.get(media_url, timeout=30)
+            response = requests.get(post["displayUrl"], timeout=30)
             response.raise_for_status()
             with open(file_path, "wb") as f:
                 f.write(response.content)
 
             drive_link = upload_to_drive(drive, folder_id, file_path, filename)
 
-            post_ist = post.date_utc.astimezone(IST)
+            ts = datetime.fromisoformat(post["timestamp"].replace("Z", "+00:00"))
+            post_ist = ts.astimezone(IST)
+
             row = [
                 post_ist.strftime("%Y-%m-%d"),
                 post_ist.strftime("%H:%M"),
-                f"https://www.instagram.com/p/{post.shortcode}/",
-                post.shortcode,
+                f"https://www.instagram.com/p/{shortcode}/",
+                shortcode,
                 drive_link,
             ]
             append_row(sheets, sheet_id, row)
-            print(f"Logged: {post.shortcode} ({row[0]} {row[1]})")
+            print(f"Logged: {shortcode} ({row[0]} {row[1]})")
 
 
 if __name__ == "__main__":
