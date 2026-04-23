@@ -1,0 +1,24 @@
+name: Instagram Audit
+on:
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python audit.py
+        env:
+          IG_USERNAME:             ${{ secrets.IG_USERNAME }}
+          IG_PASSWORD:             ${{ secrets.IG_PASSWORD }}
+          INSTAGRAM_HANDLE:        ${{ secrets.INSTAGRAM_HANDLE }}
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          GOOGLE_SHEET_ID:         ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_DRIVE_FOLDER_ID:  ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
