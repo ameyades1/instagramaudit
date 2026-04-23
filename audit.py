@@ -2,6 +2,7 @@ import base64
 import json
 import os
 import tempfile
+import time
 from datetime import datetime, timezone, timedelta
 
 import instaloader
@@ -83,6 +84,7 @@ def main():
     with open(session_path, "wb") as f:
         f.write(base64.b64decode(session_b64))
     L.load_session_from_file(ig_username, session_path)
+    time.sleep(5)
 
     profile = instaloader.Profile.from_username(L.context, handle)
     cutoff = datetime.now(timezone.utc) - timedelta(hours=48)
