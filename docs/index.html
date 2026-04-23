@@ -6,196 +6,247 @@
   <title>Instagram Audit</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:       #0d0b09;
-      --surface:  #131109;
-      --border:   #232017;
-      --text:     #ede8dc;
-      --muted:    #54504a;
-      --accent:   #c9a84c;
-      --accent-lo: rgba(201,168,76,0.08);
+      --paper:       #F9F6F0;
+      --warm-white:  #FDFBF8;
+      --copper:      #B87333;
+      --copper-lo:   rgba(184,115,51,0.10);
+      --copper-md:   rgba(184,115,51,0.20);
+      --gold:        #E8B84B;
+      --brown:       #5C3010;
+      --text:        #2b3636;
+      --ink-light:   #7A6858;
+      --border:      rgba(92,48,16,0.10);
+      --shadow-sm:   0 8px 24px rgba(0,0,0,0.08);
+      --shadow-lg:   0 24px 60px rgba(92,48,16,0.18);
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
     html { scroll-behavior: smooth; }
 
     body {
-      background: var(--bg);
+      background: var(--paper);
       color: var(--text);
-      font-family: 'Cormorant Garamond', serif;
+      font-family: 'Inter', system-ui, sans-serif;
       min-height: 100vh;
-      padding: 0 clamp(20px, 5vw, 60px);
     }
 
-    /* Grain */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)' opacity='0.05'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 9999;
-      opacity: 0.35;
-    }
-
-    /* ── HEADER ── */
-    header {
-      max-width: 1140px;
-      margin: 0 auto;
-      padding: 64px 0 40px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 32px;
+    /* ── NAV ── */
+    nav {
+      background: #fff;
       border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
-    .header-left { display: flex; flex-direction: column; gap: 6px; }
-
-    .eyebrow {
-      font-family: 'Courier Prime', monospace;
-      font-size: 10.5px;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--accent);
+    .nav-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 clamp(20px,5vw,48px);
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
     }
 
-    h1 {
-      font-size: clamp(2rem, 4.5vw, 3.4rem);
-      font-weight: 300;
-      line-height: 1.05;
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--copper);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-icon svg { width: 18px; height: 18px; color: #fff; }
+
+    .nav-title {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--brown);
       letter-spacing: -0.01em;
     }
 
-    h1 em {
-      font-style: italic;
-      font-weight: 400;
-      color: var(--accent);
-    }
-
-    .subtitle {
-      font-family: 'Courier Prime', monospace;
+    .nav-subtitle {
       font-size: 11px;
-      color: var(--muted);
-      letter-spacing: 0.08em;
-      margin-top: 4px;
+      color: var(--ink-light);
+      letter-spacing: 0.05em;
+      font-weight: 400;
     }
 
     .sheet-btn {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
-      padding: 13px 26px;
-      border: 1px solid var(--accent);
-      color: var(--accent);
+      gap: 8px;
+      padding: 10px 22px;
+      background: var(--copper);
+      color: #fff;
       text-decoration: none;
-      font-family: 'Courier Prime', monospace;
-      font-size: 11px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 100px;
+      letter-spacing: 0.01em;
+      box-shadow: 0 4px 12px rgba(184,115,51,0.35);
+      transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
       white-space: nowrap;
       flex-shrink: 0;
-      transition: background 0.18s, color 0.18s;
-      position: relative;
-      overflow: hidden;
     }
 
-    .sheet-btn::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: var(--accent);
-      transform: translateX(-101%);
-      transition: transform 0.22s ease;
-      z-index: -1;
+    .sheet-btn:hover {
+      background: var(--brown);
+      box-shadow: 0 6px 20px rgba(92,48,16,0.35);
+      transform: translateY(-1px);
     }
 
-    .sheet-btn:hover { color: var(--bg); }
-    .sheet-btn:hover::before { transform: translateX(0); }
+    .sheet-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
 
-    .sheet-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
-
-    /* ── MAIN ── */
-    main {
-      max-width: 1140px;
+    /* ── HERO ── */
+    .hero {
+      max-width: 1180px;
       margin: 0 auto;
-      padding: 48px 0 96px;
+      padding: clamp(40px,6vw,72px) clamp(20px,5vw,48px) clamp(32px,4vw,48px);
     }
 
-    .section-row {
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--copper);
+      margin-bottom: 16px;
+    }
+
+    .hero-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+
+    h1 {
+      font-family: 'Lora', Georgia, serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 600;
+      line-height: 1.15;
+      color: var(--brown);
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    h1 em {
+      font-style: italic;
+      font-weight: 400;
+      color: var(--copper);
+    }
+
+    .hero-meta {
+      font-size: 13px;
+      color: var(--ink-light);
+      font-weight: 400;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── SECTION ── */
+    .section {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 clamp(20px,5vw,48px) 80px;
+    }
+
+    .section-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
     }
 
     .section-label {
-      font-family: 'Courier Prime', monospace;
-      font-size: 10.5px;
-      letter-spacing: 0.2em;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: var(--ink-light);
     }
 
     #last-updated {
-      font-family: 'Courier Prime', monospace;
-      font-size: 10.5px;
-      color: var(--muted);
-      letter-spacing: 0.06em;
+      font-size: 12px;
+      color: var(--ink-light);
+      font-weight: 400;
     }
 
     /* ── GRID ── */
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 1px;
-      background: var(--border);
-      border: 1px solid var(--border);
+      gap: 20px;
     }
 
     .state-msg {
       grid-column: 1 / -1;
-      background: var(--bg);
-      padding: 80px;
+      padding: 64px;
       text-align: center;
-      font-family: 'Courier Prime', monospace;
-      font-size: 12px;
-      letter-spacing: 0.1em;
-      color: var(--muted);
+      font-size: 13px;
+      color: var(--ink-light);
+      letter-spacing: 0.04em;
+      background: var(--warm-white);
+      border-radius: 12px;
+      border: 1px solid var(--border);
     }
 
     /* ── CARD ── */
     .card {
-      background: var(--bg);
-      display: flex;
-      flex-direction: column;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
       cursor: pointer;
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(14px);
       animation: rise 0.45s forwards ease-out;
-      transition: background 0.18s;
+      transition: box-shadow 0.25s, transform 0.25s;
+      display: flex;
+      flex-direction: column;
     }
 
     .card:nth-child(1) { animation-delay: 0.04s; }
     .card:nth-child(2) { animation-delay: 0.10s; }
-    .card:nth-child(3) { animation-delay: 0.16s; }
-    .card:nth-child(4) { animation-delay: 0.22s; }
-    .card:nth-child(5) { animation-delay: 0.28s; }
+    .card:nth-child(3) { animation-delay: 0.17s; }
+    .card:nth-child(4) { animation-delay: 0.24s; }
+    .card:nth-child(5) { animation-delay: 0.31s; }
 
     @keyframes rise {
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .card:hover { background: var(--surface); }
+    .card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+    }
 
     .card-thumb {
       width: 100%;
       aspect-ratio: 1 / 1;
       overflow: hidden;
-      background: var(--surface);
+      background: var(--paper);
       position: relative;
     }
 
@@ -207,7 +258,7 @@
       transition: transform 0.4s ease;
     }
 
-    .card:hover .card-thumb img { transform: scale(1.04); }
+    .card:hover .card-thumb img { transform: scale(1.05); }
 
     .no-thumb {
       width: 100%;
@@ -215,151 +266,156 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .no-thumb-icon {
-      width: 28px;
-      height: 28px;
       color: var(--border);
     }
 
+    .no-thumb svg { width: 32px; height: 32px; color: #ccc5b8; }
+
     .card-body {
-      padding: 16px 18px 20px;
+      padding: 14px 16px 18px;
       display: flex;
       flex-direction: column;
       gap: 10px;
       flex: 1;
-      border-top: 1px solid var(--border);
     }
 
     .card-top {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      gap: 6px;
     }
 
     .badge {
-      font-family: 'Courier Prime', monospace;
       font-size: 9.5px;
-      letter-spacing: 0.14em;
+      font-weight: 600;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      padding: 2px 7px;
+      padding: 3px 8px;
+      border-radius: 100px;
     }
 
-    .badge-Image    { background: rgba(58,123,213,0.12); color: #7aaff0; }
-    .badge-Video    { background: rgba(123,94,168,0.12); color: #b09bd6; }
-    .badge-Carousel { background: rgba(45,138,98,0.12);  color: #6dbd98; }
-    .badge-Reel     { background: rgba(201,76,106,0.12); color: #e88fa6; }
-    .badge-Story    { background: rgba(201,136,75,0.12); color: #e8b07d; }
+    .badge-Image    { background: rgba(59,130,246,0.10); color: #2563eb; }
+    .badge-Video    { background: rgba(139,92,246,0.10); color: #7c3aed; }
+    .badge-Carousel { background: rgba(16,185,129,0.10); color: #059669; }
+    .badge-Reel     { background: rgba(239,68,68,0.10);  color: #dc2626; }
+    .badge-Story    { background: var(--copper-lo);       color: var(--copper); }
 
     .card-time {
-      font-family: 'Courier Prime', monospace;
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 0.04em;
-      line-height: 1.5;
+      font-size: 11.5px;
+      color: var(--ink-light);
+      line-height: 1.6;
+      font-weight: 400;
     }
 
     .card-link {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: var(--accent);
+      color: var(--copper);
       text-decoration: none;
-      font-size: 13px;
-      letter-spacing: 0.04em;
-      font-style: italic;
+      font-size: 12.5px;
+      font-weight: 500;
       margin-top: auto;
-      transition: gap 0.18s;
+      transition: gap 0.18s, color 0.18s;
     }
 
-    .card-link:hover { gap: 10px; }
-
-    .card-link span {
-      font-style: normal;
-      font-family: 'Courier Prime', monospace;
-      font-size: 9px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+    .card-link:hover {
+      color: var(--brown);
+      gap: 10px;
     }
 
     /* ── FOOTER ── */
     footer {
-      max-width: 1140px;
-      margin: 0 auto;
-      padding: 24px 0 48px;
+      background: var(--warm-white);
       border-top: 1px solid var(--border);
+      padding: 28px clamp(20px,5vw,48px);
+    }
+
+    .footer-inner {
+      max-width: 1180px;
+      margin: 0 auto;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       gap: 16px;
     }
 
     .footer-note {
-      font-family: 'Courier Prime', monospace;
-      font-size: 10.5px;
-      color: var(--muted);
-      letter-spacing: 0.07em;
-    }
-
-    .footer-dot {
-      width: 3px;
-      height: 3px;
-      border-radius: 50%;
-      background: var(--border);
-      flex-shrink: 0;
+      font-size: 12px;
+      color: var(--ink-light);
+      font-weight: 400;
     }
 
     /* ── RESPONSIVE ── */
-    @media (max-width: 900px) {
+    @media (max-width: 1000px) {
       .cards-grid { grid-template-columns: repeat(3, 1fr); }
     }
-
-    @media (max-width: 600px) {
-      header { flex-direction: column; align-items: flex-start; padding: 40px 0 32px; }
+    @media (max-width: 640px) {
       .cards-grid { grid-template-columns: repeat(2, 1fr); }
-      footer { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .nav-subtitle { display: none; }
+      footer .footer-note:last-child { display: none; }
     }
-
-    @media (max-width: 380px) {
+    @media (max-width: 400px) {
       .cards-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-<header>
-  <div class="header-left">
-    <span class="eyebrow">Social Media Audit</span>
-    <h1>Instagram <em>Monitor</em></h1>
-    <p class="subtitle" id="last-updated">Fetching latest activity…</p>
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="5"/>
+          <circle cx="12" cy="12" r="4"/>
+          <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+        </svg>
+      </div>
+      <div>
+        <div class="nav-title">Instagram Audit</div>
+        <div class="nav-subtitle">Social Media Monitor</div>
+      </div>
+    </div>
+    <a href="https://docs.google.com/spreadsheets/d/1NljN0VgtnYm_8EHNodt86Rseoa4UKJPDVtJ8-t8iyNU/edit"
+       target="_blank" rel="noopener" class="sheet-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <path d="M3 9h18M9 21V9"/>
+      </svg>
+      View Full Sheet
+    </a>
   </div>
-  <a href="https://docs.google.com/spreadsheets/d/1NljN0VgtnYm_8EHNodt86Rseoa4UKJPDVtJ8-t8iyNU/edit"
-     target="_blank" rel="noopener" class="sheet-btn">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="2"/>
-      <path d="M3 9h18M9 21V9"/>
-    </svg>
-    View Full Audit Sheet
-  </a>
-</header>
+</nav>
 
-<main>
-  <div class="section-row">
-    <span class="section-label">Recent Posts &mdash; Last 5</span>
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">
+    <div class="hero-dot"></div>
+    PR Agency Audit
+  </div>
+  <h1>Instagram <em>Activity</em> Log</h1>
+  <p class="hero-meta" id="last-updated">Loading latest activity…</p>
+</div>
+
+<!-- POSTS -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-label">Recent Posts — Last 5</span>
   </div>
   <div class="cards-grid" id="grid">
-    <div class="state-msg">Fetching posts&hellip;</div>
+    <div class="state-msg">Fetching posts…</div>
   </div>
-</main>
+</div>
 
+<!-- FOOTER -->
 <footer>
-  <span class="footer-note">Auto-updated every 6 hours · GitHub Actions</span>
-  <div class="footer-dot"></div>
-  <span class="footer-note">Apify &middot; Google Sheets</span>
+  <div class="footer-inner">
+    <span class="footer-note">Auto-updated every 6 hours via GitHub Actions</span>
+    <span class="footer-note">Powered by Apify · Google Sheets</span>
+  </div>
 </footer>
 
 <script>
@@ -373,20 +429,19 @@
 
   function badgeClass(type) {
     const map = { image:'Image', video:'Video', carousel:'Carousel', reel:'Reel', story:'Story' };
-    const key = (type || '').toLowerCase();
-    return 'badge-' + (map[key] || 'Image');
+    return 'badge-' + (map[(type||'').toLowerCase()] || 'Image');
   }
 
   async function load() {
-    const grid = document.getElementById('grid');
+    const grid     = document.getElementById('grid');
     const subtitle = document.getElementById('last-updated');
 
     try {
-      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
+      const url  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
       const res  = await fetch(url);
       const text = await res.text();
       const json = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
-      const rows = (json.table?.rows || []).filter(r => r.c && r.c[0]?.v);
+      const rows = (json.table?.rows || []).filter(r => r.c?.[0]?.v);
 
       if (!rows.length) {
         grid.innerHTML = '<div class="state-msg">No posts logged yet.</div>';
@@ -394,9 +449,9 @@
         return;
       }
 
-      const last5 = rows.slice(-5).reverse();
+      const last5  = rows.slice(-5).reverse();
       const newest = last5[0];
-      subtitle.textContent = `Last post: ${newest.c[0]?.v || ''} · ${newest.c[1]?.v || ''} IST`;
+      subtitle.textContent = `Last post detected: ${newest.c[0]?.v || ''} at ${newest.c[1]?.v || ''} IST`;
 
       grid.innerHTML = last5.map(row => {
         const date    = row.c[0]?.v || '—';
@@ -408,14 +463,8 @@
 
         const thumb = imgUrl
           ? `<img src="${imgUrl}" alt="" loading="lazy"
-               onerror="this.outerHTML='<div class=no-thumb><svg class=no-thumb-icon viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'1\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><path d=\'m21 15-5-5L5 21\'/></svg></div>'">`
-          : `<div class="no-thumb">
-               <svg class="no-thumb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                 <rect x="3" y="3" width="18" height="18" rx="2"/>
-                 <circle cx="8.5" cy="8.5" r="1.5"/>
-                 <path d="m21 15-5-5L5 21"/>
-               </svg>
-             </div>`;
+               onerror="this.outerHTML='<div class=no-thumb><svg viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'1.5\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><path d=\'m21 15-5-5L5 21\'/></svg></div>'">`
+          : `<div class="no-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
 
         return `
           <div class="card" onclick="window.open('${postUrl}','_blank')">
@@ -427,7 +476,7 @@
               <div class="card-time">${date}<br>${time} IST</div>
               <a class="card-link" href="${postUrl}" target="_blank" rel="noopener"
                  onclick="event.stopPropagation()">
-                Open post&nbsp;<span>→</span>
+                Open post →
               </a>
             </div>
           </div>`;
