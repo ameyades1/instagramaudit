@@ -17,7 +17,7 @@ jobs:
       - run: python audit.py
         env:
           IG_USERNAME:             ${{ secrets.IG_USERNAME }}
-          IG_PASSWORD:             ${{ secrets.IG_PASSWORD }}
+          IG_SESSION:              ${{ secrets.IG_SESSION }}
           INSTAGRAM_HANDLE:        ${{ secrets.INSTAGRAM_HANDLE }}
           GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
           GOOGLE_SHEET_ID:         ${{ secrets.GOOGLE_SHEET_ID }}

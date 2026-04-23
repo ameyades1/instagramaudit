@@ -65,7 +65,6 @@ def append_row(sheets, sheet_id, row):
 
 def main():
     ig_username = os.environ["IG_USERNAME"]
-    ig_password = os.environ["IG_PASSWORD"]
     handle = os.environ["INSTAGRAM_HANDLE"]
     sheet_id = os.environ["GOOGLE_SHEET_ID"]
     folder_id = os.environ["GOOGLE_DRIVE_FOLDER_ID"]
@@ -77,7 +76,13 @@ def main():
                                  download_video_thumbnails=False, download_geotags=False,
                                  download_comments=False, save_metadata=False,
                                  post_metadata_txt_pattern="")
-    L.login(ig_username, ig_password)
+
+    # write session file from secret and load it (avoids checkpoint errors from raw password login)
+    session_b64 = os.environ["IG_SESSION"]
+    session_path = f"/tmp/session-{ig_username}"
+    with open(session_path, "wb") as f:
+        f.write(base64.b64decode(session_b64))
+    L.load_session_from_file(ig_username, session_path)
 
     profile = instaloader.Profile.from_username(L.context, handle)
     cutoff = datetime.now(timezone.utc) - timedelta(hours=48)
