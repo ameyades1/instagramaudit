@@ -463,6 +463,7 @@
   </div>
   <h1>Antar Yog Instagram <em>Activity</em> Log</h1>
   <p class="hero-meta" id="last-updated">Loading latest activity…</p>
+  <p class="hero-meta" id="page-updated" style="margin-top:4px;"></p>
 </div>
 
 <!-- POSTS -->
@@ -538,6 +539,9 @@
 
       const p0 = posts[0];
       subtitle.textContent = `Last post detected: ${fmtDate(p0.date)} at ${fmtTime(p0.time)} IST`;
+      if (data.updated) {
+        document.getElementById('page-updated').textContent = `Page last updated: ${data.updated}`;
+      }
 
       grid.innerHTML = posts.map(p => {
         const thumb = p.imageUrl
