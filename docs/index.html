@@ -302,10 +302,17 @@
     .badge-Story    { background: var(--copper-lo);       color: var(--copper); }
 
     .card-time {
-      font-size: 11.5px;
+      font-size: 13px;
       color: var(--ink-light);
-      line-height: 1.6;
+      line-height: 1.7;
       font-weight: 400;
+    }
+
+    .card-time strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
     }
 
     .card-link {
@@ -419,12 +426,21 @@
 </footer>
 
 <script>
-  const SHEET_ID = '1NljN0VgtnYm_8EHNodt86Rseoa4UKJPDVtJ8-t8iyNU';
+  const MONTHS = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
 
-  function extractImageUrl(cell) {
-    if (!cell) return null;
-    const m = cell.match(/=IMAGE\("([^"]+)"/i);
-    return m ? m[1] : (cell.startsWith('http') ? cell : null);
+  function fmtDate(iso) {
+    // iso = "YYYY-MM-DD"
+    const [y, m, d] = iso.split('-');
+    return `${parseInt(d)} ${MONTHS[parseInt(m)-1]} ${y}`;
+  }
+
+  function fmtTime(hhmm) {
+    // hhmm = "HH:MM"
+    const [h, m] = hhmm.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12  = h % 12 || 12;
+    return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
   }
 
   function badgeClass(type) {
@@ -432,49 +448,43 @@
     return 'badge-' + (map[(type||'').toLowerCase()] || 'Image');
   }
 
+  const noThumb = `<div class="no-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+
   async function load() {
     const grid     = document.getElementById('grid');
     const subtitle = document.getElementById('last-updated');
 
     try {
-      const url  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
-      const res  = await fetch(url);
-      const text = await res.text();
-      const json = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
-      const rows = (json.table?.rows || []).filter(r => r.c?.[0]?.v);
+      const res  = await fetch('./data.json?t=' + Date.now());
+      const data = await res.json();
+      const posts = (data.posts || []).slice(0, 5);
 
-      if (!rows.length) {
+      if (!posts.length) {
         grid.innerHTML = '<div class="state-msg">No posts logged yet.</div>';
         subtitle.textContent = 'No activity recorded.';
         return;
       }
 
-      const last5  = rows.slice(-5).reverse();
-      const newest = last5[0];
-      subtitle.textContent = `Last post detected: ${newest.c[0]?.v || ''} at ${newest.c[1]?.v || ''} IST`;
+      const p0 = posts[0];
+      subtitle.textContent = `Last post detected: ${fmtDate(p0.date)} at ${fmtTime(p0.time)} IST`;
 
-      grid.innerHTML = last5.map(row => {
-        const date    = row.c[0]?.v || '—';
-        const time    = row.c[1]?.v || '—';
-        const postUrl = row.c[2]?.v || '#';
-        const media   = row.c[4]?.v || '';
-        const type    = row.c[5]?.v || 'Image';
-        const imgUrl  = extractImageUrl(media);
-
-        const thumb = imgUrl
-          ? `<img src="${imgUrl}" alt="" loading="lazy"
-               onerror="this.outerHTML='<div class=no-thumb><svg viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'1.5\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><path d=\'m21 15-5-5L5 21\'/></svg></div>'">`
-          : `<div class="no-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+      grid.innerHTML = posts.map(p => {
+        const thumb = p.imageUrl
+          ? `<img src="${p.imageUrl}" alt="" loading="lazy" onerror="this.outerHTML=noThumb">`
+          : noThumb;
 
         return `
-          <div class="card" onclick="window.open('${postUrl}','_blank')">
+          <div class="card" onclick="window.open('${p.url}','_blank')">
             <div class="card-thumb">${thumb}</div>
             <div class="card-body">
               <div class="card-top">
-                <span class="badge ${badgeClass(type)}">${type}</span>
+                <span class="badge ${badgeClass(p.type)}">${p.type}</span>
               </div>
-              <div class="card-time">${date}<br>${time} IST</div>
-              <a class="card-link" href="${postUrl}" target="_blank" rel="noopener"
+              <div class="card-time">
+                <strong>${fmtDate(p.date)}</strong>
+                ${fmtTime(p.time)} IST
+              </div>
+              <a class="card-link" href="${p.url}" target="_blank" rel="noopener"
                  onclick="event.stopPropagation()">
                 Open post →
               </a>
@@ -483,7 +493,7 @@
       }).join('');
 
     } catch (e) {
-      grid.innerHTML = '<div class="state-msg">Could not load data — make sure the sheet is set to "Anyone with the link can view".</div>';
+      grid.innerHTML = '<div class="state-msg">Could not load data.json — trigger a workflow run first.</div>';
       subtitle.textContent = 'Failed to load.';
       console.error(e);
     }

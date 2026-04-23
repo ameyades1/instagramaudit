@@ -2,6 +2,9 @@ import base64
 import json
 import os
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
+
+DATA_JSON = Path("docs/data.json")
 
 from apify_client import ApifyClient
 from google.oauth2 import service_account
@@ -186,7 +189,31 @@ def main():
             post_type,
         ]
         append_row(sheets, sheet_id, row, img_h, img_w)
+        update_data_json({
+            "date":     row[0],
+            "time":     row[1],
+            "url":      post_url,
+            "id":       display_id,
+            "imageUrl": post.get("displayUrl", ""),
+            "type":     post_type,
+        })
         print(f"Logged: {shortcode} ({row[0]} {row[1]}) [{post_type}]")
+
+
+def update_data_json(new_entry):
+    if DATA_JSON.exists():
+        with open(DATA_JSON) as f:
+            data = json.load(f)
+    else:
+        data = {"posts": []}
+
+    data["posts"].insert(0, new_entry)
+    data["posts"] = data["posts"][:20]
+    data["updated"] = datetime.now(IST).strftime("%Y-%m-%d %H:%M IST")
+
+    DATA_JSON.parent.mkdir(parents=True, exist_ok=True)
+    with open(DATA_JSON, "w") as f:
+        json.dump(data, f, indent=2)
 
 
 if __name__ == "__main__":
