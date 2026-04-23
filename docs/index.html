@@ -540,7 +540,9 @@
       const p0 = posts[0];
       subtitle.textContent = `Last post detected: ${fmtDate(p0.date)} at ${fmtTime(p0.time)} IST`;
       if (data.updated) {
-        document.getElementById('page-updated').textContent = `Page last updated: ${data.updated}`;
+        const [datePart, timePart] = data.updated.split(' ');
+        document.getElementById('page-updated').textContent =
+          `Page last updated: ${fmtDate(datePart)} at ${fmtTime(timePart)} IST`;
       }
 
       grid.innerHTML = posts.map(p => {
