@@ -572,6 +572,13 @@
 
   load();
 
+  function fmtGvizCell(cell) {
+    if (!cell || cell.v == null) return '';
+    const m = String(cell.v).match(/^Date\((\d+),(\d+),\d+\)$/);
+    if (m) return `${MONTHS[parseInt(m[2])]} ${m[1]}`;  // month is 0-indexed in gviz
+    return cell.f != null ? cell.f : cell.v;
+  }
+
   async function loadSummary() {
     const SHEET_ID = '1NljN0VgtnYm_8EHNodt86Rseoa4UKJPDVtJ8-t8iyNU';
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=Summary&range=A:D&tqx=out:json&headers=1`;
@@ -587,7 +594,7 @@
       document.getElementById('summary-tbody').innerHTML = rows.map(row =>
         '<tr>' + cols.map((_, i) => {
           const cell = row.c && row.c[i];
-          return `<td>${cell && cell.v != null ? cell.v : ''}</td>`;
+          return `<td>${fmtGvizCell(cell)}</td>`;
         }).join('') + '</tr>'
       ).join('');
     } catch (e) {

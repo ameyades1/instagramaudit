@@ -1,10 +1,12 @@
 import base64
 import json
 import os
+import urllib.request
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-DATA_JSON = Path("docs/data.json")
+DATA_JSON  = Path("docs/data.json")
+IMAGES_DIR = Path("docs/images")
 
 from apify_client import ApifyClient
 from google.oauth2 import service_account
@@ -46,6 +48,18 @@ MAX_PX = 500
 def scale_dimensions(width, height, max_px=MAX_PX):
     scale = min(max_px / width, max_px / height)
     return int(width * scale), int(height * scale)
+
+
+def download_image(url, dest_path):
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            dest_path.parent.mkdir(parents=True, exist_ok=True)
+            dest_path.write_bytes(resp.read())
+        return True
+    except Exception as e:
+        print(f"Image download failed ({dest_path.name}): {e}")
+        return False
 
 
 def append_row(sheets, sheet_id, row, row_height, col_width):
@@ -184,12 +198,18 @@ def main():
             post_url = f"https://www.instagram.com/p/{shortcode}/"
             display_id = shortcode
 
+        date_str = post_ist.strftime("%Y-%m-%d")
+        cdn_url  = post.get("displayUrl", "")
+        img_filename = f"{date_str}-{display_id}.jpg"
+        saved = download_image(cdn_url, IMAGES_DIR / img_filename)
+        local_url = f"images/{img_filename}" if saved else cdn_url
+
         row = [
-            post_ist.strftime("%Y-%m-%d"),
+            date_str,
             post_ist.strftime("%H:%M"),
             post_url,
             display_id,
-            f'=IMAGE("{post["displayUrl"]}", 4, {img_h}, {img_w})',
+            f'=IMAGE("{cdn_url}", 4, {img_h}, {img_w})',
             post_type,
         ]
         append_row(sheets, sheet_id, row, img_h, img_w)
@@ -198,7 +218,7 @@ def main():
             "time":     row[1],
             "url":      post_url,
             "id":       display_id,
-            "imageUrl": post.get("displayUrl", ""),
+            "imageUrl": local_url,
             "type":     post_type,
         })
         print(f"Logged: {shortcode} ({row[0]} {row[1]}) [{post_type}]")
