@@ -15,6 +15,7 @@ TYPE_MAP = {
     "Video":   "Video",
     "Sidecar": "Carousel",
     "Reel":    "Reel",
+    "Story":   "Story",
 }
 
 
@@ -105,6 +106,31 @@ def fetch_reels(client, handle):
         return []
 
 
+def fetch_stories(client, handle):
+    try:
+        run = client.actor("apify/instagram-story-scraper").call(
+            run_input={"usernames": [handle]}
+        )
+        items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+        normalized = []
+        for item in items:
+            story_id = str(item.get("id", ""))
+            if not story_id:
+                continue
+            normalized.append({
+                "shortCode": f"story_{story_id}",
+                "displayUrl": item.get("displayUrl", item.get("thumbnailUrl", "")),
+                "timestamp": item.get("takenAtTimestamp",
+                             item.get("timestamp", "")),
+                "dimensions": item.get("dimensions", {}),
+                "postType": "Story",
+            })
+        return normalized
+    except Exception as e:
+        print(f"Stories fetch skipped: {e}")
+        return []
+
+
 def main():
     handle = os.environ["INSTAGRAM_HANDLE"]
     sheet_id = os.environ["GOOGLE_SHEET_ID"]
@@ -114,9 +140,12 @@ def main():
 
     client = ApifyClient(os.environ["APIFY_API_KEY"])
 
-    # combine grid posts + reels, deduplicate by shortcode
+    # combine grid posts + reels + stories, deduplicate by shortcode/id
     all_posts = {p["shortCode"]: p for p in fetch_grid_posts(client, handle)}
     for p in fetch_reels(client, handle):
+        if p["shortCode"] and p["shortCode"] not in all_posts:
+            all_posts[p["shortCode"]] = p
+    for p in fetch_stories(client, handle):
         if p["shortCode"] and p["shortCode"] not in all_posts:
             all_posts[p["shortCode"]] = p
 
@@ -140,11 +169,19 @@ def main():
 
         post_type = TYPE_MAP.get(post.get("postType", ""), post.get("postType", "Image"))
 
+        if post_type == "Story":
+            story_id = shortcode.replace("story_", "")
+            post_url = f"https://www.instagram.com/stories/{handle}/{story_id}/"
+            display_id = story_id
+        else:
+            post_url = f"https://www.instagram.com/p/{shortcode}/"
+            display_id = shortcode
+
         row = [
             post_ist.strftime("%Y-%m-%d"),
             post_ist.strftime("%H:%M"),
-            f"https://www.instagram.com/p/{shortcode}/",
-            shortcode,
+            post_url,
+            display_id,
             f'=IMAGE("{post["displayUrl"]}", 4, {img_h}, {img_w})',
             post_type,
         ]
