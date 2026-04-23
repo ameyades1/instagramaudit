@@ -29,13 +29,29 @@ def get_logged_shortcodes(sheets, sheet_id):
     return {row[0] for row in rows[1:] if row}
 
 
+IMAGE_SIZE = 150
+
+
 def append_row(sheets, sheet_id, row):
-    sheets.spreadsheets().values().append(
+    response = sheets.spreadsheets().values().append(
         spreadsheetId=sheet_id,
         range="A:E",
         valueInputOption="USER_ENTERED",
         insertDataOption="INSERT_ROWS",
         body={"values": [row]},
+    ).execute()
+
+    # set row height to match image size
+    updated_range = response["updates"]["updatedRange"]
+    row_index = int(updated_range.split("!")[1].split(":")[0].lstrip("ABCDEFGHIJKLMNOPQRSTUVWXYZ")) - 1
+    sheets.spreadsheets().batchUpdate(
+        spreadsheetId=sheet_id,
+        body={"requests": [{"updateDimensionProperties": {
+            "range": {"sheetId": 0, "dimension": "ROWS",
+                      "startIndex": row_index, "endIndex": row_index + 1},
+            "properties": {"pixelSize": IMAGE_SIZE},
+            "fields": "pixelSize",
+        }}]},
     ).execute()
 
 
@@ -75,7 +91,7 @@ def main():
             post_ist.strftime("%H:%M"),
             f"https://www.instagram.com/p/{shortcode}/",
             shortcode,
-            f'=IMAGE("{post["displayUrl"]}")',
+            f'=IMAGE("{post["displayUrl"]}", 4, {IMAGE_SIZE}, {IMAGE_SIZE})',
         ]
         append_row(sheets, sheet_id, row)
         print(f"Logged: {shortcode} ({row[0]} {row[1]})")
