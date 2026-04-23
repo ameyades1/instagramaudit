@@ -29,10 +29,15 @@ def get_logged_shortcodes(sheets, sheet_id):
     return {row[0] for row in rows[1:] if row}
 
 
-IMAGE_SIZE = 150
+MAX_PX = 500
 
 
-def append_row(sheets, sheet_id, row):
+def scale_dimensions(width, height, max_px=MAX_PX):
+    scale = min(max_px / width, max_px / height)
+    return int(width * scale), int(height * scale)
+
+
+def append_row(sheets, sheet_id, row, row_height):
     response = sheets.spreadsheets().values().append(
         spreadsheetId=sheet_id,
         range="A:E",
@@ -41,7 +46,6 @@ def append_row(sheets, sheet_id, row):
         body={"values": [row]},
     ).execute()
 
-    # set row height to match image size
     updated_range = response["updates"]["updatedRange"]
     row_index = int(updated_range.split("!")[1].split(":")[0].lstrip("ABCDEFGHIJKLMNOPQRSTUVWXYZ")) - 1
     sheets.spreadsheets().batchUpdate(
@@ -49,7 +53,7 @@ def append_row(sheets, sheet_id, row):
         body={"requests": [{"updateDimensionProperties": {
             "range": {"sheetId": 0, "dimension": "ROWS",
                       "startIndex": row_index, "endIndex": row_index + 1},
-            "properties": {"pixelSize": IMAGE_SIZE},
+            "properties": {"pixelSize": row_height},
             "fields": "pixelSize",
         }}]},
     ).execute()
@@ -86,14 +90,19 @@ def main():
         ts = datetime.fromisoformat(post["timestamp"].replace("Z", "+00:00"))
         post_ist = ts.astimezone(IST)
 
+        dims = post.get("dimensions", {})
+        orig_w = dims.get("width") or 1080
+        orig_h = dims.get("height") or 1080
+        img_w, img_h = scale_dimensions(orig_w, orig_h)
+
         row = [
             post_ist.strftime("%Y-%m-%d"),
             post_ist.strftime("%H:%M"),
             f"https://www.instagram.com/p/{shortcode}/",
             shortcode,
-            f'=IMAGE("{post["displayUrl"]}", 4, {IMAGE_SIZE}, {IMAGE_SIZE})',
+            f'=IMAGE("{post["displayUrl"]}", 4, {img_h}, {img_w})',
         ]
-        append_row(sheets, sheet_id, row)
+        append_row(sheets, sheet_id, row, img_h)
         print(f"Logged: {shortcode} ({row[0]} {row[1]})")
 
 
