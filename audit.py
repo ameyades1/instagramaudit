@@ -10,6 +10,13 @@ from googleapiclient.discovery import build
 IST = timezone(timedelta(hours=5, minutes=30))
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
+TYPE_MAP = {
+    "Image":   "Image",
+    "Video":   "Video",
+    "Sidecar": "Carousel",
+    "Reel":    "Reel",
+}
+
 
 def get_sheets_client():
     raw = base64.b64decode(os.environ["GOOGLE_CREDENTIALS_JSON"])
@@ -40,7 +47,7 @@ def scale_dimensions(width, height, max_px=MAX_PX):
 def append_row(sheets, sheet_id, row, row_height, col_width):
     response = sheets.spreadsheets().values().append(
         spreadsheetId=sheet_id,
-        range="A:E",
+        range="A:F",
         valueInputOption="USER_ENTERED",
         insertDataOption="INSERT_ROWS",
         body={"values": [row]},
@@ -67,6 +74,37 @@ def append_row(sheets, sheet_id, row, row_height, col_width):
     ).execute()
 
 
+def fetch_grid_posts(client, handle):
+    run = client.actor("apify/instagram-profile-scraper").call(
+        run_input={"usernames": [handle]}
+    )
+    items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+    if not items:
+        return []
+    posts = items[0].get("latestPosts", [])
+    for p in posts:
+        p.setdefault("postType", p.get("type", "Image"))
+    return posts
+
+
+def fetch_reels(client, handle):
+    try:
+        run = client.actor("apify/instagram-reel-scraper").call(
+            run_input={"username": handle, "resultsLimit": 12}
+        )
+        items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+        for item in items:
+            item.setdefault("postType", "Reel")
+            item.setdefault("shortCode", item.get("shortcode", ""))
+            item.setdefault("displayUrl", item.get("thumbnailUrl", item.get("displayUrl", "")))
+            item.setdefault("timestamp", item.get("timestamp", ""))
+            item.setdefault("dimensions", item.get("dimensions", {}))
+        return items
+    except Exception as e:
+        print(f"Reels fetch skipped: {e}")
+        return []
+
+
 def main():
     handle = os.environ["INSTAGRAM_HANDLE"]
     sheet_id = os.environ["GOOGLE_SHEET_ID"]
@@ -75,17 +113,14 @@ def main():
     logged = get_logged_shortcodes(sheets, sheet_id)
 
     client = ApifyClient(os.environ["APIFY_API_KEY"])
-    run = client.actor("apify/instagram-profile-scraper").call(
-        run_input={"usernames": [handle]}
-    )
 
-    items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
-    if not items:
-        print("No data returned from Apify.")
-        return
+    # combine grid posts + reels, deduplicate by shortcode
+    all_posts = {p["shortCode"]: p for p in fetch_grid_posts(client, handle)}
+    for p in fetch_reels(client, handle):
+        if p["shortCode"] and p["shortCode"] not in all_posts:
+            all_posts[p["shortCode"]] = p
 
-    posts = items[0].get("latestPosts", [])
-    new_posts = [p for p in posts if p["shortCode"] not in logged]
+    new_posts = [p for p in all_posts.values() if p["shortCode"] not in logged]
 
     if not new_posts:
         print("No new posts found.")
@@ -103,15 +138,18 @@ def main():
         orig_h = dims.get("height") or 1080
         img_w, img_h = scale_dimensions(orig_w, orig_h)
 
+        post_type = TYPE_MAP.get(post.get("postType", ""), post.get("postType", "Image"))
+
         row = [
             post_ist.strftime("%Y-%m-%d"),
             post_ist.strftime("%H:%M"),
             f"https://www.instagram.com/p/{shortcode}/",
             shortcode,
             f'=IMAGE("{post["displayUrl"]}", 4, {img_h}, {img_w})',
+            post_type,
         ]
         append_row(sheets, sheet_id, row, img_h, img_w)
-        print(f"Logged: {shortcode} ({row[0]} {row[1]})")
+        print(f"Logged: {shortcode} ({row[0]} {row[1]}) [{post_type}]")
 
 
 if __name__ == "__main__":
