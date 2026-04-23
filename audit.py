@@ -5,6 +5,8 @@ import tempfile
 import time
 from datetime import datetime, timezone, timedelta
 
+IST = timezone(timedelta(hours=5, minutes=30))
+
 import instaloader
 import requests
 from google.oauth2 import service_account
@@ -116,9 +118,10 @@ def main():
 
             drive_link = upload_to_drive(drive, folder_id, file_path, filename)
 
+            post_ist = post.date_utc.astimezone(IST)
             row = [
-                post.date_utc.strftime("%Y-%m-%d"),
-                post.date_utc.strftime("%H:%M"),
+                post_ist.strftime("%Y-%m-%d"),
+                post_ist.strftime("%H:%M"),
                 f"https://www.instagram.com/p/{post.shortcode}/",
                 post.shortcode,
                 drive_link,
