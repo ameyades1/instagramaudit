@@ -24,5 +24,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/data.json
+          git add docs/data.json 2>/dev/null || true
           git diff --staged --quiet || (git commit -m "Update post data [skip ci]" && git push)
