@@ -37,7 +37,7 @@ def scale_dimensions(width, height, max_px=MAX_PX):
     return int(width * scale), int(height * scale)
 
 
-def append_row(sheets, sheet_id, row, row_height):
+def append_row(sheets, sheet_id, row, row_height, col_width):
     response = sheets.spreadsheets().values().append(
         spreadsheetId=sheet_id,
         range="A:E",
@@ -50,12 +50,20 @@ def append_row(sheets, sheet_id, row, row_height):
     row_index = int(updated_range.split("!")[1].split(":")[0].lstrip("ABCDEFGHIJKLMNOPQRSTUVWXYZ")) - 1
     sheets.spreadsheets().batchUpdate(
         spreadsheetId=sheet_id,
-        body={"requests": [{"updateDimensionProperties": {
-            "range": {"sheetId": 0, "dimension": "ROWS",
-                      "startIndex": row_index, "endIndex": row_index + 1},
-            "properties": {"pixelSize": row_height},
-            "fields": "pixelSize",
-        }}]},
+        body={"requests": [
+            {"updateDimensionProperties": {
+                "range": {"sheetId": 0, "dimension": "ROWS",
+                          "startIndex": row_index, "endIndex": row_index + 1},
+                "properties": {"pixelSize": row_height},
+                "fields": "pixelSize",
+            }},
+            {"updateDimensionProperties": {
+                "range": {"sheetId": 0, "dimension": "COLUMNS",
+                          "startIndex": 4, "endIndex": 5},
+                "properties": {"pixelSize": col_width},
+                "fields": "pixelSize",
+            }},
+        ]},
     ).execute()
 
 
@@ -102,7 +110,7 @@ def main():
             shortcode,
             f'=IMAGE("{post["displayUrl"]}", 4, {img_h}, {img_w})',
         ]
-        append_row(sheets, sheet_id, row, img_h)
+        append_row(sheets, sheet_id, row, img_h, img_w)
         print(f"Logged: {shortcode} ({row[0]} {row[1]})")
 
 
