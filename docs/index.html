@@ -332,6 +332,64 @@
       gap: 10px;
     }
 
+    /* ── SUMMARY TABLE ── */
+    .summary-section {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 clamp(20px,5vw,48px) 80px;
+    }
+
+    .summary-table-wrap {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    .summary-table thead tr {
+      background: var(--copper);
+    }
+
+    .summary-table thead th {
+      padding: 13px 20px;
+      text-align: left;
+      font-family: 'Lora', Georgia, serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .summary-table tbody tr {
+      border-top: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .summary-table tbody tr:hover { background: var(--paper); }
+
+    .summary-table tbody td {
+      padding: 12px 20px;
+      color: var(--text);
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    .summary-table tbody tr:nth-child(even) td {
+      background: var(--warm-white);
+    }
+
+    .summary-table tbody tr:nth-child(even):hover td {
+      background: var(--paper);
+    }
+
     /* ── FOOTER ── */
     footer {
       background: var(--warm-white);
@@ -414,6 +472,19 @@
   </div>
   <div class="cards-grid" id="grid">
     <div class="state-msg">Fetching posts…</div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="summary-section">
+  <div class="section-header">
+    <span class="section-label">Summary</span>
+  </div>
+  <div class="summary-table-wrap">
+    <table class="summary-table">
+      <thead id="summary-thead"><tr><th colspan="4" style="color:rgba(255,255,255,0.7);font-weight:400;">Loading…</th></tr></thead>
+      <tbody id="summary-tbody"></tbody>
+    </table>
   </div>
 </div>
 
@@ -500,6 +571,33 @@
   }
 
   load();
+
+  async function loadSummary() {
+    const SHEET_ID = '1NljN0VgtnYm_8EHNodt86Rseoa4UKJPDVtJ8-t8iyNU';
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=Summary&range=A:D&tqx=out:json&headers=1`;
+    try {
+      const res  = await fetch(url);
+      const text = await res.text();
+      const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/)[1]);
+      const { cols, rows } = json.table;
+
+      document.getElementById('summary-thead').innerHTML =
+        '<tr>' + cols.map(c => `<th>${c.label || ''}</th>`).join('') + '</tr>';
+
+      document.getElementById('summary-tbody').innerHTML = rows.map(row =>
+        '<tr>' + cols.map((_, i) => {
+          const cell = row.c && row.c[i];
+          return `<td>${cell && cell.v != null ? cell.v : ''}</td>`;
+        }).join('') + '</tr>'
+      ).join('');
+    } catch (e) {
+      document.getElementById('summary-thead').innerHTML =
+        '<tr><th colspan="4" style="color:rgba(255,255,255,0.7);font-weight:400;">Could not load Summary sheet — ensure it is publicly readable.</th></tr>';
+      console.error(e);
+    }
+  }
+
+  loadSummary();
 </script>
 </body>
 </html>
