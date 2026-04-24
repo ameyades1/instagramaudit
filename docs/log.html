@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit Log — Instagram Audit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper:      #F9F6F0;
+      --warm-white: #FDFBF8;
+      --copper:     #B87333;
+      --copper-lo:  rgba(184,115,51,0.10);
+      --copper-md:  rgba(184,115,51,0.22);
+      --gold:       #E8B84B;
+      --brown:      #5C3010;
+      --text:       #2b3636;
+      --ink-light:  #7A6858;
+      --border:     rgba(92,48,16,0.10);
+      --shadow-sm:  0 8px 24px rgba(0,0,0,0.08);
+      --shadow-lg:  0 24px 60px rgba(92,48,16,0.18);
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--paper);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 clamp(20px,5vw,48px);
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--copper);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .nav-icon svg { width: 18px; height: 18px; color: #fff; }
+
+    .nav-title {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--brown);
+      letter-spacing: -0.01em;
+    }
+
+    .nav-subtitle {
+      font-size: 11px;
+      color: var(--ink-light);
+      letter-spacing: 0.05em;
+      font-weight: 400;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .nav-link {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-light);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: color 0.18s;
+    }
+
+    .nav-link:hover { color: var(--copper); }
+
+    .sheet-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      background: var(--copper);
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 100px;
+      letter-spacing: 0.01em;
+      box-shadow: 0 4px 12px rgba(184,115,51,0.35);
+      transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+
+    .sheet-btn:hover {
+      background: var(--brown);
+      box-shadow: 0 6px 20px rgba(92,48,16,0.35);
+      transform: translateY(-1px);
+    }
+
+    .sheet-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* ── HERO ── */
+    .hero {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: clamp(40px,6vw,72px) clamp(20px,5vw,48px) clamp(24px,3vw,36px);
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--copper);
+      margin-bottom: 16px;
+    }
+
+    .hero-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+
+    h1 {
+      font-family: 'Lora', Georgia, serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 600;
+      line-height: 1.15;
+      color: var(--brown);
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    h1 em {
+      font-style: italic;
+      font-weight: 400;
+      color: var(--copper);
+    }
+
+    .hero-meta {
+      font-size: 13px;
+      color: var(--ink-light);
+    }
+
+    /* ── FILTER BAR ── */
+    .filter-wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 clamp(20px,5vw,48px) 28px;
+    }
+
+    .filter-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .filter-scroll::-webkit-scrollbar { display: none; }
+
+    .filter-pill {
+      flex-shrink: 0;
+      padding: 7px 18px;
+      border: 1.5px solid var(--border);
+      border-radius: 100px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--ink-light);
+      background: #fff;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s, border-color 0.18s;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .filter-pill:hover {
+      border-color: var(--copper-md);
+      color: var(--copper);
+    }
+
+    .filter-pill.active {
+      background: var(--copper);
+      border-color: var(--copper);
+      color: #fff;
+      box-shadow: 0 3px 10px rgba(184,115,51,0.30);
+    }
+
+    /* ── GALLERY ── */
+    .gallery {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 clamp(20px,5vw,48px) 80px;
+    }
+
+    .gallery-meta {
+      font-size: 12px;
+      color: var(--ink-light);
+      letter-spacing: 0.03em;
+      margin-bottom: 18px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 18px;
+    }
+
+    .state-msg {
+      grid-column: 1 / -1;
+      padding: 64px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--ink-light);
+      letter-spacing: 0.04em;
+      background: var(--warm-white);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: rise 0.4s forwards ease-out;
+      transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-3px);
+      border-color: var(--copper-md);
+    }
+
+    @keyframes rise {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-thumb {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      background: var(--paper);
+    }
+
+    .card-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+
+    .card:hover .card-thumb img { transform: scale(1.05); }
+
+    .no-thumb {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .no-thumb svg { width: 28px; height: 28px; color: #ccc5b8; }
+
+    .card-body {
+      padding: 12px 14px 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      flex: 1;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .badge {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 3px 7px;
+      border-radius: 100px;
+    }
+
+    .badge-Image    { background: rgba(59,130,246,0.10); color: #2563eb; }
+    .badge-Video    { background: rgba(139,92,246,0.10); color: #7c3aed; }
+    .badge-Carousel { background: rgba(16,185,129,0.10); color: #059669; }
+    .badge-Reel     { background: rgba(239,68,68,0.10);  color: #dc2626; }
+    .badge-Story    { background: var(--copper-lo);       color: var(--copper); }
+
+    .card-date {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .card-time {
+      font-size: 11.5px;
+      color: var(--ink-light);
+    }
+
+    .card-posted-by {
+      font-size: 11.5px;
+      color: var(--ink-light);
+      font-style: italic;
+    }
+
+    .card-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--copper);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: auto;
+      padding-top: 4px;
+      transition: gap 0.18s, color 0.18s;
+    }
+
+    .card-link:hover { color: var(--brown); gap: 8px; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--warm-white);
+      border-top: 1px solid var(--border);
+      padding: 28px clamp(20px,5vw,48px);
+    }
+
+    .footer-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .footer-note {
+      font-size: 12px;
+      color: var(--ink-light);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1100px) { .cards-grid { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 860px)  { .cards-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 600px) {
+      .cards-grid { grid-template-columns: repeat(2, 1fr); }
+      .nav-subtitle { display: none; }
+      .sheet-btn span { display: none; }
+    }
+    @media (max-width: 380px) { .cards-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="5"/>
+          <circle cx="12" cy="12" r="4"/>
+          <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+        </svg>
+      </div>
+      <div>
+        <div class="nav-title">Instagram Audit</div>
+        <div class="nav-subtitle">Social Media Monitor</div>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="index.html" class="nav-link">← Dashboard</a>
+      <a href="https://docs.google.com/spreadsheets/d/1NljN0VgtnYm_8EHNodt86Rseoa4UKJPDVtJ8-t8iyNU/edit"
+         target="_blank" rel="noopener" class="sheet-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M3 9h18M9 21V9"/>
+        </svg>
+        <span>View Full Sheet</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">
+    <div class="hero-dot"></div>
+    PR Agency Audit
+  </div>
+  <h1>Post <em>Archive</em></h1>
+  <p class="hero-meta" id="hero-meta">Loading audit log…</p>
+</div>
+
+<!-- FILTER -->
+<div class="filter-wrap">
+  <div class="filter-scroll" id="filter-bar">
+    <div class="filter-pill active" data-month="all">All</div>
+  </div>
+</div>
+
+<!-- GALLERY -->
+<div class="gallery">
+  <div class="gallery-meta" id="gallery-meta"></div>
+  <div class="cards-grid" id="grid">
+    <div class="state-msg">Loading posts…</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <span class="footer-note">Auto-updated every 6 hours via GitHub Actions</span>
+    <span class="footer-note">Powered by Apify · Google Sheets</span>
+  </div>
+</footer>
+
+<script>
+  const SHEET_ID = '1NljN0VgtnYm_8EHNodt86Rseoa4UKJPDVtJ8-t8iyNU';
+  const MONTHS   = ['January','February','March','April','May','June',
+                    'July','August','September','October','November','December'];
+
+  let allPosts    = [];
+  let activeMonth = 'all';
+
+  /* ── PARSERS ── */
+
+  function parseDate(v) {
+    if (!v) return null;
+    const s = String(v);
+    // gviz format: Date(2026,3,23) — month is 0-indexed
+    const gm = s.match(/^Date\((\d+),(\d+),(\d+)\)$/);
+    if (gm) return { year: +gm[1], month: +gm[2] + 1, day: +gm[3] };
+    // text format: 2026-04-23
+    const im = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (im) return { year: +im[1], month: +im[2], day: +im[3] };
+    return null;
+  }
+
+  function toISO(d) {
+    return `${d.year}-${String(d.month).padStart(2,'0')}-${String(d.day).padStart(2,'0')}`;
+  }
+
+  function fmtDate(d) {
+    return `${d.day} ${MONTHS[d.month - 1]} ${d.year}`;
+  }
+
+  function monthKey(d) {
+    return `${MONTHS[d.month - 1]} ${d.year}`;
+  }
+
+  function fmtTime(v) {
+    if (!v) return '';
+    const m = String(v).match(/^(\d{1,2}):(\d{2})/);
+    if (!m) return String(v);
+    const h = +m[1], min = +m[2];
+    return `${h % 12 || 12}:${String(min).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`;
+  }
+
+  function cellVal(row, i) {
+    const c = row.c && row.c[i];
+    return (c && c.v != null) ? c.v : null;
+  }
+
+  /* ── RENDER ── */
+
+  const noThumb = `<div class="no-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+
+  function badgeClass(type) {
+    const map = { image:'Image', video:'Video', carousel:'Carousel', reel:'Reel', story:'Story' };
+    return 'badge-' + (map[(type||'').toLowerCase()] || 'Image');
+  }
+
+  function renderGrid(posts) {
+    const grid = document.getElementById('grid');
+    const meta = document.getElementById('gallery-meta');
+
+    if (!posts.length) {
+      grid.innerHTML = '<div class="state-msg">No posts for this period.</div>';
+      meta.textContent = '';
+      return;
+    }
+
+    meta.textContent = `${posts.length} post${posts.length !== 1 ? 's' : ''}`;
+
+    grid.innerHTML = posts.map((p, i) => {
+      const delay = (Math.min(i, 12) * 0.05).toFixed(2);
+      const thumb = p.imageUrl
+        ? `<img src="${p.imageUrl}" alt="" loading="lazy" onerror="this.outerHTML=\`${noThumb.replace(/`/g,"'")}\`">`
+        : noThumb;
+      const postedBy = p.postedBy
+        ? `<div class="card-posted-by">by ${p.postedBy}</div>`
+        : '';
+
+      return `
+        <div class="card" style="animation-delay:${delay}s"
+             onclick="window.open('${p.url}','_blank')">
+          <div class="card-thumb">${thumb}</div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="badge ${badgeClass(p.type)}">${p.type}</span>
+            </div>
+            <div class="card-date">${p.dateStr}</div>
+            <div class="card-time">${p.timeStr} IST</div>
+            ${postedBy}
+            <a class="card-link" href="${p.url}" target="_blank" rel="noopener"
+               onclick="event.stopPropagation()">Open post →</a>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function applyFilter() {
+    const filtered = activeMonth === 'all'
+      ? allPosts
+      : allPosts.filter(p => p.monthKey === activeMonth);
+    renderGrid(filtered);
+  }
+
+  /* ── FILTER PILLS ── */
+
+  function buildFilter(posts) {
+    const seen = new Map();
+    posts.forEach(p => {
+      if (!seen.has(p.monthKey))
+        seen.set(p.monthKey, p.date.year * 100 + p.date.month);
+    });
+
+    const months = [...seen.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([key]) => key);
+
+    const bar = document.getElementById('filter-bar');
+    months.forEach(key => {
+      const pill = document.createElement('div');
+      pill.className = 'filter-pill';
+      pill.dataset.month = key;
+      pill.textContent = key;
+      bar.appendChild(pill);
+    });
+
+    bar.addEventListener('click', e => {
+      const pill = e.target.closest('.filter-pill');
+      if (!pill) return;
+      bar.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      activeMonth = pill.dataset.month;
+      applyFilter();
+    });
+  }
+
+  /* ── FETCH ── */
+
+  async function load() {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?range=A:G&tqx=out:json&headers=1`;
+    try {
+      const res  = await fetch(url);
+      const text = await res.text();
+      const json = JSON.parse(
+        text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/)[1]
+      );
+      const { rows } = json.table;
+
+      allPosts = rows
+        .map(row => {
+          const date = parseDate(cellVal(row, 0));
+          if (!date) return null;
+
+          const id       = String(cellVal(row, 3) || '');
+          const isoDate  = toISO(date);
+          const imageUrl = id ? `images/${isoDate}-${id}.jpg` : null;
+          const raw_pb   = cellVal(row, 6);
+          const postedBy = raw_pb ? String(raw_pb).trim() : '';
+
+          return {
+            date,
+            dateStr:  fmtDate(date),
+            timeStr:  fmtTime(cellVal(row, 1)),
+            url:      String(cellVal(row, 2) || '#'),
+            id,
+            imageUrl,
+            type:     String(cellVal(row, 5) || 'Post'),
+            postedBy,
+            monthKey: monthKey(date),
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) =>
+          (b.date.year  - a.date.year)  ||
+          (b.date.month - a.date.month) ||
+          (b.date.day   - a.date.day)
+        );
+
+      document.getElementById('hero-meta').textContent =
+        `${allPosts.length} post${allPosts.length !== 1 ? 's' : ''} logged in total`;
+
+      buildFilter(allPosts);
+      applyFilter();
+    } catch (e) {
+      document.getElementById('grid').innerHTML =
+        '<div class="state-msg">Could not load the sheet — ensure the spreadsheet is set to publicly readable.</div>';
+      document.getElementById('hero-meta').textContent = 'Failed to load.';
+      console.error(e);
+    }
+  }
+
+  load();
+</script>
+</body>
+</html>
