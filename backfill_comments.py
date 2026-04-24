@@ -121,15 +121,21 @@ def main():
         # Look up full post data (with latestComments)
         post = grid_by_id.get(post_id)
         if not post:
-            continue  # Post not in latest 12 grid posts
+            print(f"Post {post_id} not in latest 12 grid posts (skipped)")
+            continue
 
-        for comment in post.get("latestComments", []):
+        latest_comments = post.get("latestComments", [])
+        print(f"Post {post_id}: {len(latest_comments)} comments in latestComments")
+
+        for comment in latest_comments:
             if comment.get("id") in logged_comment_ids:
-                continue  # Already logged
+                print(f"  Comment {comment.get('id')}: already logged (skipped)")
+                continue
 
             ts = datetime.fromisoformat(comment["timestamp"].replace("Z", "+00:00"))
             comment_ist = ts.astimezone(IST)
 
+            print(f"  Comment {comment.get('id')}: new, will add")
             comment_rows.append([
                 post_id,
                 post_url,
