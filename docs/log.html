@@ -516,7 +516,8 @@
 
   /* ── RENDER ── */
 
-  const noThumb = `<div class="no-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+  const noThumb       = `<div class="no-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+  const noThumbHidden = noThumb.replace('class="no-thumb"', 'class="no-thumb" style="display:none"');
 
   function badgeClass(type) {
     const map = { image:'Image', video:'Video', carousel:'Carousel', reel:'Reel', story:'Story' };
@@ -538,7 +539,7 @@
     grid.innerHTML = posts.map((p, i) => {
       const delay = (Math.min(i, 12) * 0.05).toFixed(2);
       const thumb = p.imageUrl
-        ? `<img src="${p.imageUrl}" alt="" loading="lazy" onerror="this.outerHTML=\`${noThumb.replace(/`/g,"'")}\`">`
+        ? `<img src="${p.imageUrl}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">${noThumbHidden}`
         : noThumb;
       const postedBy = p.postedBy
         ? `<div class="card-posted-by">by ${p.postedBy}</div>`
