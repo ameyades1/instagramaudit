@@ -65,16 +65,39 @@ def get_post_details(sheets, sheet_id):
     return posts
 
 
-def fetch_grid_posts(client, handle):
-    """Fetch grid posts from Apify."""
-    run = client.actor("apify/instagram-profile-scraper").call(
-        run_input={"usernames": [handle]}
+def fetch_comments_for_posts(client, post_urls):
+    """Fetch comments for a list of post URLs using instagram-comments-scraper."""
+    if not post_urls:
+        return {}
+
+    print(f"Fetching comments for {len(post_urls)} posts...")
+    run = client.actor("apify/instagram-comments-scraper").call(
+        run_input={
+            "directUrls": post_urls,
+            "resultsLimit": 100,  # Get up to 100 comments per post
+        }
     )
     items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
-    if not items:
-        return []
-    posts = items[0].get("latestPosts", [])
-    return posts
+
+    # Group comments by post shortcode
+    comments_by_post = {}
+    for item in items:
+        # Extract shortcode from URL if available, or use the id
+        url = item.get("url", "")
+        if "/p/" in url:
+            shortcode = url.split("/p/")[1].split("/")[0]
+        else:
+            shortcode = None
+
+        if not shortcode:
+            continue
+
+        if shortcode not in comments_by_post:
+            comments_by_post[shortcode] = []
+
+        comments_by_post[shortcode].append(item)
+
+    return comments_by_post
 
 
 def append_comments(sheets, sheet_id, rows):
@@ -105,37 +128,37 @@ def main():
     posts_in_sheet = get_post_details(sheets, sheet_id)
     print(f"Found {len(posts_in_sheet)} posts in Post Details sheet")
 
-    # Fetch grid posts (which have latestComments)
-    grid_posts = fetch_grid_posts(client, handle)
-    print(f"Fetched {len(grid_posts)} grid posts from Apify")
+    # Extract post URLs (skip stories)
+    post_urls = [p["url"] for p in posts_in_sheet if "/stories/" not in p["url"]]
+    print(f"Fetching comments for {len(post_urls)} posts (excluding stories)...")
 
-    # Map shortcode -> post for easy lookup
-    grid_by_id = {p["shortCode"]: p for p in grid_posts}
+    # Fetch comments for all posts via instagram-comments-scraper
+    comments_by_shortcode = fetch_comments_for_posts(client, post_urls)
+    print(f"Got comments for {len(comments_by_shortcode)} posts")
 
-    # Extract comments
+    # Extract new comments
     comment_rows = []
     for post_detail in posts_in_sheet:
         post_id = post_detail["id"]
         post_url = post_detail["url"]
 
-        # Look up full post data (with latestComments)
-        post = grid_by_id.get(post_id)
-        if not post:
-            print(f"Post {post_id} not in latest 12 grid posts (skipped)")
+        # Skip stories
+        if "/stories/" in post_url:
             continue
 
-        latest_comments = post.get("latestComments", [])
-        print(f"Post {post_id}: {len(latest_comments)} comments in latestComments")
+        comments = comments_by_shortcode.get(post_id, [])
+        print(f"Post {post_id}: {len(comments)} comments from scraper")
 
-        for comment in latest_comments:
-            if comment.get("id") in logged_comment_ids:
-                print(f"  Comment {comment.get('id')}: already logged (skipped)")
+        for comment in comments:
+            comment_id = comment.get("id", "")
+            if comment_id in logged_comment_ids:
+                print(f"  Comment {comment_id}: already logged (skipped)")
                 continue
 
             ts = datetime.fromisoformat(comment["timestamp"].replace("Z", "+00:00"))
             comment_ist = ts.astimezone(IST)
 
-            print(f"  Comment {comment.get('id')}: new, will add")
+            print(f"  Comment {comment_id}: new, will add")
             comment_rows.append([
                 post_id,
                 post_url,
@@ -143,7 +166,7 @@ def main():
                 comment_ist.strftime("%H:%M"),
                 comment.get("ownerUsername", ""),
                 comment.get("text", ""),
-                comment.get("id", ""),
+                comment_id,
             ])
 
     if comment_rows:
