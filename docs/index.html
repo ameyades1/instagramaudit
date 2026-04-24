@@ -315,6 +315,12 @@
       color: var(--text);
     }
 
+    .card-posted-by {
+      font-size: 11.5px;
+      color: var(--ink-light);
+      font-style: italic;
+    }
+
     .card-link {
       display: inline-flex;
       align-items: center;
@@ -525,7 +531,26 @@
     return 'badge-' + (map[(type||'').toLowerCase()] || 'Image');
   }
 
-  const noThumb = `<div class="no-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+  const SHEET_ID = '1NljN0VgtnYm_8EHNodt86Rseoa4UKJPDVtJ8-t8iyNU';
+  const noThumb  = `<div class="no-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+
+  async function loadPostedBy() {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?range=D:G&tqx=out:json&headers=1`;
+    try {
+      const res  = await fetch(url);
+      const text = await res.text();
+      const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/)[1]);
+      const map  = {};
+      (json.table.rows || []).forEach(row => {
+        const id = row.c && row.c[0] && row.c[0].v != null ? String(row.c[0].v).trim() : null;
+        const pb = row.c && row.c[3] && row.c[3].v != null ? String(row.c[3].v).trim() : '';
+        if (id) map[id] = pb;
+      });
+      return map;
+    } catch (e) {
+      return {};
+    }
+  }
 
   async function load() {
     const grid     = document.getElementById('grid');
@@ -550,10 +575,14 @@
           `Page last updated: ${fmtDate(datePart)} at ${fmtTime(timePart)} IST`;
       }
 
+      const postedByMap = await loadPostedBy();
+
       grid.innerHTML = posts.map(p => {
         const thumb = p.imageUrl
           ? `<img src="${p.imageUrl}" alt="" loading="lazy" onerror="this.outerHTML=noThumb">`
           : noThumb;
+        const pb = postedByMap[p.id] || '';
+        const postedByHtml = pb ? `<div class="card-posted-by">by ${pb}</div>` : '';
 
         return `
           <div class="card" onclick="window.open('${p.url}','_blank')">
@@ -566,6 +595,7 @@
                 <strong>${fmtDate(p.date)}</strong>
                 ${fmtTime(p.time)} IST
               </div>
+              ${postedByHtml}
               <a class="card-link" href="${p.url}" target="_blank" rel="noopener"
                  onclick="event.stopPropagation()">
                 Open post →

@@ -337,16 +337,17 @@
     .badge-Reel     { background: rgba(239,68,68,0.10);  color: #dc2626; }
     .badge-Story    { background: var(--copper-lo);       color: var(--copper); }
 
-    .card-date {
+    .card-time {
       font-size: 13px;
-      font-weight: 500;
-      color: var(--text);
-      line-height: 1.3;
+      color: var(--ink-light);
+      line-height: 1.7;
     }
 
-    .card-time {
-      font-size: 11.5px;
-      color: var(--ink-light);
+    .card-time strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
     }
 
     .card-posted-by {
@@ -477,15 +478,16 @@
 
   /* ── PARSERS ── */
 
-  function parseDate(v) {
-    if (!v) return null;
-    const s = String(v);
-    // gviz format: Date(2026,3,23) — month is 0-indexed
-    const gm = s.match(/^Date\((\d+),(\d+),(\d+)\)$/);
+  function parseDate(v, f) {
+    // gviz Date object, optional spaces: Date(2026,3,23) or Date(2026, 3, 23)
+    const gm = String(v||'').match(/^Date\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
     if (gm) return { year: +gm[1], month: +gm[2] + 1, day: +gm[3] };
-    // text format: 2026-04-23
-    const im = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    // ISO text: 2026-04-23
+    const im = String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (im) return { year: +im[1], month: +im[2], day: +im[3] };
+    // fallback: gviz formatted value M/D/YYYY
+    const fm = String(f||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (fm) return { year: +fm[3], month: +fm[1], day: +fm[2] };
     return null;
   }
 
@@ -502,7 +504,13 @@
   }
 
   function fmtTime(v) {
-    if (!v) return '';
+    if (v == null || v === '') return '';
+    // gviz fractional day: 0.604166... = 14:30
+    if (typeof v === 'number') {
+      const mins = Math.round(v * 1440);
+      const h = Math.floor(mins / 60) % 24, m = mins % 60;
+      return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`;
+    }
     const m = String(v).match(/^(\d{1,2}):(\d{2})/);
     if (!m) return String(v);
     const h = +m[1], min = +m[2];
@@ -512,6 +520,11 @@
   function cellVal(row, i) {
     const c = row.c && row.c[i];
     return (c && c.v != null) ? c.v : null;
+  }
+
+  function cellFmt(row, i) {
+    const c = row.c && row.c[i];
+    return (c && c.f != null) ? c.f : null;
   }
 
   /* ── RENDER ── */
@@ -553,8 +566,10 @@
             <div class="card-top">
               <span class="badge ${badgeClass(p.type)}">${p.type}</span>
             </div>
-            <div class="card-date">${p.dateStr}</div>
-            <div class="card-time">${p.timeStr} IST</div>
+            <div class="card-time">
+              <strong>${p.dateStr}</strong>
+              ${p.timeStr} IST
+            </div>
             ${postedBy}
             <a class="card-link" href="${p.url}" target="_blank" rel="noopener"
                onclick="event.stopPropagation()">Open post →</a>
@@ -616,7 +631,7 @@
 
       allPosts = rows
         .map(row => {
-          const date = parseDate(cellVal(row, 0));
+          const date = parseDate(cellVal(row, 0), cellFmt(row, 0));
           if (!date) return null;
 
           const id       = String(cellVal(row, 3) || '');
@@ -624,11 +639,12 @@
           const imageUrl = id ? `images/${isoDate}-${id}.jpg` : null;
           const raw_pb   = cellVal(row, 6);
           const postedBy = raw_pb ? String(raw_pb).trim() : '';
+          const timeVal  = cellVal(row, 1) ?? cellFmt(row, 1);
 
           return {
             date,
             dateStr:  fmtDate(date),
-            timeStr:  fmtTime(cellVal(row, 1)),
+            timeStr:  fmtTime(timeVal),
             url:      String(cellVal(row, 2) || '#'),
             id,
             imageUrl,
