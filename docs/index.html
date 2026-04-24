@@ -532,7 +532,7 @@
     const subtitle = document.getElementById('last-updated');
 
     try {
-      const res  = await fetch('./data.json?t=' + Date.now());
+      const res  = await fetch('./data.json', { cache: 'reload' });
       const data = await res.json();
       const posts = (data.posts || []).slice(0, 5);
 
