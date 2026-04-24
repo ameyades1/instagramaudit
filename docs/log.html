@@ -398,6 +398,7 @@
     @media (max-width: 600px) {
       .cards-grid { grid-template-columns: repeat(2, 1fr); }
       .nav-subtitle { display: none; }
+      .nav-link { display: none; }
       .sheet-btn span { display: none; }
     }
     @media (max-width: 380px) { .cards-grid { grid-template-columns: 1fr; } }
@@ -429,7 +430,7 @@
           <rect x="3" y="3" width="18" height="18" rx="2"/>
           <path d="M3 9h18M9 21V9"/>
         </svg>
-        <span>View Full Sheet</span>
+        <span>View Sheet</span>
       </a>
     </div>
   </div>
@@ -505,14 +506,22 @@
 
   function fmtTime(v) {
     if (v == null || v === '') return '';
+    const s = String(v);
+    // gviz time-of-day: Date(1899,12,30,14,30,0) — hours at index 3, minutes at 4
+    const tm = s.match(/^Date\s*\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(\d+)\s*,\s*(\d+)/);
+    if (tm) {
+      const h = +tm[1], m = +tm[2];
+      return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`;
+    }
     // gviz fractional day: 0.604166... = 14:30
     if (typeof v === 'number') {
       const mins = Math.round(v * 1440);
       const h = Math.floor(mins / 60) % 24, m = mins % 60;
       return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`;
     }
-    const m = String(v).match(/^(\d{1,2}):(\d{2})/);
-    if (!m) return String(v);
+    // HH:MM plain text
+    const m = s.match(/^(\d{1,2}):(\d{2})/);
+    if (!m) return s;
     const h = +m[1], min = +m[2];
     return `${h % 12 || 12}:${String(min).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`;
   }
