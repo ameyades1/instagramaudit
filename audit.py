@@ -92,6 +92,33 @@ def append_row(sheets, sheet_id, row, row_height, col_width):
     ).execute()
 
 
+def get_logged_comment_ids(sheets, sheet_id):
+    try:
+        result = (
+            sheets.spreadsheets()
+            .values()
+            .get(spreadsheetId=sheet_id, range="Comments!G:G")
+            .execute()
+        )
+        rows = result.get("values", [])
+        return {row[0] for row in rows[1:] if row}
+    except Exception as e:
+        print(f"Could not read Comments tab (may not exist yet): {e}")
+        return set()
+
+
+def append_comments(sheets, sheet_id, rows):
+    if not rows:
+        return
+    sheets.spreadsheets().values().append(
+        spreadsheetId=sheet_id,
+        range="Comments!A:G",
+        valueInputOption="RAW",
+        insertDataOption="INSERT_ROWS",
+        body={"values": rows},
+    ).execute()
+
+
 def fetch_grid_posts(client, handle):
     run = client.actor("apify/instagram-profile-scraper").call(
         run_input={"usernames": [handle]}
@@ -231,6 +258,35 @@ def main():
             "type":     post_type,
         })
         print(f"Logged: {shortcode} ({row[0]} {row[1]}) [{post_type}]")
+
+    logged_comment_ids = get_logged_comment_ids(sheets, sheet_id)
+    grid_posts = fetch_grid_posts(client, handle)
+    comment_rows = []
+
+    for post in grid_posts:
+        for comment in post.get("latestComments", []):
+            if comment.get("id") in logged_comment_ids:
+                continue
+            ts = datetime.fromisoformat(comment["timestamp"].replace("Z", "+00:00"))
+            comment_ist = ts.astimezone(IST)
+            shortcode = post["shortCode"]
+            post_url = f"https://www.instagram.com/p/{shortcode}/"
+
+            comment_rows.append([
+                shortcode,
+                post_url,
+                comment_ist.strftime("%Y-%m-%d"),
+                comment_ist.strftime("%H:%M"),
+                comment.get("ownerUsername", ""),
+                comment.get("text", ""),
+                comment.get("id", ""),
+            ])
+
+    if comment_rows:
+        append_comments(sheets, sheet_id, comment_rows)
+        print(f"Logged {len(comment_rows)} new comments.")
+    else:
+        print("No new comments found.")
 
 
 def update_data_json(new_entry):
