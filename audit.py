@@ -35,7 +35,7 @@ def get_logged_shortcodes(sheets, sheet_id):
     result = (
         sheets.spreadsheets()
         .values()
-        .get(spreadsheetId=sheet_id, range="D:D")
+        .get(spreadsheetId=sheet_id, range="Post Details!D:D")
         .execute()
     )
     rows = result.get("values", [])
@@ -65,7 +65,7 @@ def download_image(url, dest_path):
 def append_row(sheets, sheet_id, row, row_height, col_width):
     response = sheets.spreadsheets().values().append(
         spreadsheetId=sheet_id,
-        range="A:F",
+        range="Post Details!A:H",
         valueInputOption="USER_ENTERED",
         insertDataOption="INSERT_ROWS",
         body={"values": [row]},
@@ -209,6 +209,8 @@ def main():
         saved = download_image(cdn_url, IMAGES_DIR / img_filename)
         local_url = f"images/{img_filename}" if saved else cdn_url
 
+        caption = (post.get("caption") or "").strip()
+
         row = [
             date_str,
             post_ist.strftime("%H:%M"),
@@ -216,6 +218,8 @@ def main():
             display_id,
             f'=IMAGE("{cdn_url}", 4, {img_h}, {img_w})',
             post_type,
+            "",
+            caption,
         ]
         append_row(sheets, sheet_id, row, img_h, img_w)
         update_data_json({
