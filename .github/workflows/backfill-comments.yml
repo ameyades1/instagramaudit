@@ -1,0 +1,20 @@
+name: Backfill Comments
+on:
+  workflow_dispatch:
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python backfill_comments.py
+        env:
+          APIFY_API_KEY:           ${{ secrets.APIFY_API_KEY }}
+          GOOGLE_SHEET_ID:         ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          INSTAGRAM_HANDLE:        ${{ secrets.INSTAGRAM_HANDLE }}
