@@ -170,10 +170,15 @@ def main():
 
     if not new_posts:
         print("No new posts found.")
-        if not DATA_JSON.exists():
+        if DATA_JSON.exists():
+            with open(DATA_JSON) as f:
+                data = json.load(f)
+        else:
+            data = {"posts": []}
             DATA_JSON.parent.mkdir(parents=True, exist_ok=True)
-            with open(DATA_JSON, "w") as f:
-                json.dump({"posts": [], "updated": datetime.now(IST).strftime("%Y-%m-%d %H:%M IST")}, f, indent=2)
+        data["updated"] = datetime.now(IST).strftime("%Y-%m-%d %H:%M IST")
+        with open(DATA_JSON, "w") as f:
+            json.dump(data, f, indent=2)
         return
 
     new_posts.sort(key=lambda p: p["timestamp"])
