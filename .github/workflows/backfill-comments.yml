@@ -1,6 +1,8 @@
 name: Backfill Comments
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Manual trigger only — run from Actions tab as needed
+
+
 
 jobs:
   backfill:
