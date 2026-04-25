@@ -7,9 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Instagram Audit** is an automated monitoring tool that:
 - Runs on GitHub Actions every 6 hours (via Apify API, not direct scraping — Instagram blocks datacenter IPs)
 - Detects new posts (images, carousels, reels, stories) from a public Instagram account
-- Logs metadata to a Google Sheet (date, time, URL, post ID, type, captions, comments)
+- Logs post metadata to a Google Sheet (date, time, URL, post ID, type, caption)
+- Captures comments on recent posts (up to 10 per post for posts from the last 7 days)
 - Preserves thumbnails locally in `docs/images/` and in Google Sheets via IMAGE formulas
 - Updates a JSON data file (`docs/data.json`) that powers a GitHub Pages dashboard
+- Costs ~$4.80/month on Apify's $5/month free tier
 
 ## Development Setup
 
@@ -53,8 +55,11 @@ python backfill_captions.py
 - For each new post:
   - Downloads thumbnail to `docs/images/<date>-<id>.jpg`
   - Appends row to Google Sheets "Post Details" tab with IMAGE formula
-  - Extracts latest comments and logs to "Comments" tab
   - Updates `docs/data.json` with post metadata (keeps last 20)
+- Fetches comments for posts from the last 7 days via `apify/instagram-comment-scraper`:
+  - Scrapes up to 10 comments per post (per-post limit for cost control)
+  - Deduplicates by comment ID against already-logged comments
+  - Appends new comments to "Comments" tab
 - Timezone: IST (India Standard Time, UTC+5:30)
 - Post types: Image, Video, Carousel (Sidecar), Reel, Story
 
@@ -121,7 +126,7 @@ python backfill_captions.py
 
 ## Key Technical Decisions
 
-1. **Apify instead of direct scraping**: Instagram blocks datacenter IP ranges (GitHub Actions, Azure). Apify uses residential proxies (~$0.01–$0.03 per run, well within free tier $5/month).
+1. **Apify instead of direct scraping**: Instagram blocks datacenter IP ranges (GitHub Actions, Azure). Apify uses residential proxies (~$4.80/month, within free tier $5/month).
 
 2. **12-post lookback limit**: Profile scraper returns only latest 12 grid posts per run. Posts published before continuous monitoring started may be incomplete.
 
@@ -136,7 +141,13 @@ python backfill_captions.py
    - Comments deduplicated by comment ID
    - Prevents duplicate rows on re-runs
 
-7. **Comment capture in main flow**: `audit.py` now extracts latest comments (3–5 per post) from grid posts and logs them. Backfill script available for retroactive backfilling.
+7. **Comments scraping with 7-day window**: 
+   - Only fetches comments for posts from the last 7 days (cost control)
+   - Limits to 10 comments per post (budget: ~$3.60/month)
+   - Captures enough engagement data without overwhelming the free tier
+   - Dedicated `apify/instagram-comment-scraper` actor (not embedded latestComments)
+
+8. **Robust URL field parsing**: Handles multiple field name variations in scraper output (url, postUrl, post_url) to adapt to API changes.
 
 ## Environment Variables & Secrets
 

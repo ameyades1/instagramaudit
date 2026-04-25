@@ -10,6 +10,7 @@ Built to monitor a PR agency's Instagram output without requiring access to thei
 
 - Detect every new post (images, carousels, reels, stories) within 6 hours of it being published
 - Log the date, time, post URL, post ID, and post type to a Google Sheet automatically
+- Capture comments from posts (up to 10 per post for posts from the last 7 days)
 - Preserve a permanent screenshot of each post thumbnail in case content is later deleted
 - Surface a summary and the most recent posts on a public dashboard webpage
 
@@ -23,15 +24,19 @@ GitHub Actions (every 6 hours)
         ▼
   audit.py
         │
-        ├─► Apify — fetches latest posts, reels, and stories via 3 actors
-        │         (instagram-profile-scraper, instagram-reel-scraper, instagram-story-scraper)
+        ├─► Apify — fetches latest posts, reels, and stories via 4 actors
+        │         (instagram-profile-scraper, instagram-reel-scraper, instagram-story-scraper,
+        │          instagram-comment-scraper for posts from last 7 days)
         │
-        ├─► Google Sheets API — reads already-logged post IDs to deduplicate
+        ├─► Google Sheets API — reads already-logged post IDs and comment IDs to deduplicate
         │
         ├─► For each new post:
         │       ├─ Downloads thumbnail → saved to docs/images/<date>-<id>.jpg
         │       ├─ Appends a row to Google Sheet (date, time, URL, ID, IMAGE formula, type)
         │       └─ Updates docs/data.json with post metadata + local image path
+        │
+        ├─► For posts from the last 7 days (non-stories):
+        │       └─ Fetches up to 10 comments per post and appends to Comments sheet
         │
         └─► GitHub Actions commits docs/data.json + docs/images/ back to the repo
 ```
@@ -53,12 +58,21 @@ Apify's free plan includes **$5 of credit per month** (no rollover).
 | Actor | Pricing | Cost per run |
 |---|---|---|
 | `instagram-profile-scraper` | $2.60 / 1,000 profiles | ~$0.0026 |
-| `instagram-reel-scraper` | pay-per-result | ~$0.01 |
-| `instagram-story-scraper` | pay-per-result | ~$0.01 |
+| `instagram-reel-scraper` | pay-per-result | ~$0.005 |
+| `instagram-story-scraper` | pay-per-result | ~$0.005 |
+| `instagram-comment-scraper` | $1.50 / 1,000 comments | ~$0.015 (7-day window, 2 active posts) |
 
-Running every 6 hours = ~120 runs/month ≈ **$0.31–$1.50/month**, well within the $5 free credit.
+**Monthly breakdown** (120 runs at 6-hour cadence):
+- Profile + Reel + Story scrapers: **~$1.20/month**
+- Comments scraper (avg 2 posts × 10 comments): **~$3.60/month**
+- **Total: ~$4.80/month**, well within the $5 free credit
 
-You would need to run every ~5 minutes continuously all month to exhaust the free tier.
+Budget assumptions:
+- 2 posts per week (typical for PR agency) = ~2 active posts in 7-day window
+- ~10 new comments per post during that 7-day period
+- Comments scraper only processes posts from last 7 days to control costs
+
+You would need significantly more posts or comment volume to approach the $5 monthly limit.
 
 ---
 
@@ -66,9 +80,11 @@ You would need to run every ~5 minutes continuously all month to exhaust the fre
 
 - **12-post lookback**: The profile scraper returns only the last 12 grid posts per run. Posts published more than 12 posts ago before the first run was set up will not be captured. This is why data from March 2026 (before the tool was running continuously) may be incomplete.
 - **Stories expire**: Instagram stories disappear after 24 hours. The scraper can only capture stories that are still live at the time of the run. The 6-hour cadence maximises coverage but cannot guarantee every story is caught.
+- **Comment window**: Comments are only captured for posts from the last 7 days. Older posts will not have new comments added. This is a cost control measure to stay within the $5/month free tier.
+- **Comment limit per post**: Up to 10 comments per post are captured (due to budget constraints). High-engagement posts may have more comments that are not captured.
 - **Thumbnail permanence**: `=IMAGE()` formulas in Google Sheets reference the Apify CDN URL, which may expire. The downloaded images in `docs/images/` are the permanent record — git history preserves them even if posts are deleted from Instagram.
 - **Public accounts only**: This tool works only on public Instagram profiles. No Instagram credentials are required or used.
-- **No engagement metrics**: Only post existence (date, time, type) is tracked. Like/comment counts are not collected.
+- **No likes/shares**: Only comments are tracked. Like counts, share counts, and other engagement metrics are not collected.
 
 ---
 
@@ -105,6 +121,8 @@ base64 -w 0 service-account.json
 
 The sheet must be shared with the service account email as **Editor**.
 
+**Post Details tab** (columns A–H):
+
 | Column | Content |
 |---|---|
 | A | Date (YYYY-MM-DD) |
@@ -113,8 +131,24 @@ The sheet must be shared with the service account email as **Editor**.
 | D | Post ID / shortcode |
 | E | Thumbnail (`=IMAGE()` formula) |
 | F | Post type (Image, Video, Carousel, Reel, Story) |
+| G | (reserved) |
+| H | Caption |
 
-A separate sheet named **Summary** is used for the dashboard summary table.
+**Comments tab** (columns A–G):
+
+| Column | Content |
+|---|---|
+| A | Post ID (shortcode) |
+| B | Post URL |
+| C | Comment date (YYYY-MM-DD) |
+| D | Comment time (HH:MM IST) |
+| E | Comment author username |
+| F | Comment text |
+| G | Comment ID (for deduplication, hidden) |
+
+**Summary tab** (user-maintained):
+- Used for the dashboard summary table (pulled live by GitHub Pages)
+- Structure: columns A–D with aggregated statistics
 
 ---
 
