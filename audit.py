@@ -119,6 +119,53 @@ def append_comments(sheets, sheet_id, rows):
     ).execute()
 
 
+def get_recent_post_urls(sheets, sheet_id, days=7):
+    cutoff = (datetime.now(IST) - timedelta(days=days)).date()
+    try:
+        result = (
+            sheets.spreadsheets()
+            .values()
+            .get(spreadsheetId=sheet_id, range="Post Details!A:C")
+            .execute()
+        )
+        rows = result.get("values", [])
+    except Exception as e:
+        print(f"Could not read Post Details sheet: {e}")
+        return []
+
+    urls = []
+    for row in rows[1:]:
+        if len(row) < 3:
+            continue
+        try:
+            post_date = datetime.strptime(row[0], "%Y-%m-%d").date()
+        except (ValueError, IndexError):
+            continue
+        post_url = row[2]
+        if post_date >= cutoff and "/stories/" not in post_url and post_url:
+            urls.append(post_url)
+    return urls
+
+
+def fetch_comments_via_scraper(client, post_urls):
+    if not post_urls:
+        return {}
+    run = client.actor("apify/instagram-comments-scraper").call(
+        run_input={"directUrls": post_urls, "resultsLimit": 10}
+    )
+    items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+    comments_by_shortcode = {}
+    for item in items:
+        url = item.get("url", "")
+        if "/p/" not in url:
+            continue
+        shortcode = url.split("/p/")[1].split("/")[0]
+        if shortcode not in comments_by_shortcode:
+            comments_by_shortcode[shortcode] = []
+        comments_by_shortcode[shortcode].append(item)
+    return comments_by_shortcode
+
+
 def fetch_grid_posts(client, handle):
     run = client.actor("apify/instagram-profile-scraper").call(
         run_input={"usernames": [handle]}
@@ -260,18 +307,18 @@ def main():
         print(f"Logged: {shortcode} ({row[0]} {row[1]}) [{post_type}]")
 
     logged_comment_ids = get_logged_comment_ids(sheets, sheet_id)
-    grid_posts = fetch_grid_posts(client, handle)
-    comment_rows = []
+    recent_urls = get_recent_post_urls(sheets, sheet_id, days=7)
+    comments_by_shortcode = fetch_comments_via_scraper(client, recent_urls)
 
-    for post in grid_posts:
-        for comment in post.get("latestComments", []):
-            if comment.get("id") in logged_comment_ids:
+    comment_rows = []
+    for shortcode, comments in comments_by_shortcode.items():
+        post_url = f"https://www.instagram.com/p/{shortcode}/"
+        for comment in comments:
+            comment_id = str(comment.get("id", ""))
+            if comment_id in logged_comment_ids:
                 continue
             ts = datetime.fromisoformat(comment["timestamp"].replace("Z", "+00:00"))
             comment_ist = ts.astimezone(IST)
-            shortcode = post["shortCode"]
-            post_url = f"https://www.instagram.com/p/{shortcode}/"
-
             comment_rows.append([
                 shortcode,
                 post_url,
@@ -279,7 +326,7 @@ def main():
                 comment_ist.strftime("%H:%M"),
                 comment.get("ownerUsername", ""),
                 comment.get("text", ""),
-                comment.get("id", ""),
+                comment_id,
             ])
 
     if comment_rows:
