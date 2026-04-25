@@ -132,7 +132,7 @@ def main():
     post_urls = [p["url"] for p in posts_in_sheet if "/stories/" not in p["url"]]
     print(f"Fetching comments for {len(post_urls)} posts (excluding stories)...")
 
-    # Fetch comments for all posts via instagram-comments-scraper
+    # Fetch comments for all posts via instagram-comment-scraper
     comments_by_shortcode = fetch_comments_for_posts(client, post_urls)
     print(f"Got comments for {len(comments_by_shortcode)} posts")
 

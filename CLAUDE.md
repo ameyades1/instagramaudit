@@ -66,7 +66,7 @@ python backfill_captions.py
 
 **`backfill_comments.py`** (manual, one-off)
 - Reads all posts from "Post Details" sheet
-- Fetches comments via `apify/instagram-comments-scraper` (up to 100 per post)
+- Fetches comments via `apify/instagram-comment-scraper` (up to 100 per post)
 - Deduplicates by comment ID
 - Appends to "Comments" sheet
 - Skips stories
