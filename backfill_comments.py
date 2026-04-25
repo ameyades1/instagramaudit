@@ -66,12 +66,12 @@ def get_post_details(sheets, sheet_id):
 
 
 def fetch_comments_for_posts(client, post_urls):
-    """Fetch comments for a list of post URLs using instagram-comments-scraper."""
+    """Fetch comments for a list of post URLs using instagram-comment-scraper."""
     if not post_urls:
         return {}
 
     print(f"Fetching comments for {len(post_urls)} posts...")
-    run = client.actor("apify/instagram-comments-scraper").call(
+    run = client.actor("apify/instagram-comment-scraper").call(
         run_input={
             "directUrls": post_urls,
             "resultsLimit": 100,  # Get up to 100 comments per post

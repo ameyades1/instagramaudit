@@ -150,7 +150,7 @@ def get_recent_post_urls(sheets, sheet_id, days=7):
 def fetch_comments_via_scraper(client, post_urls):
     if not post_urls:
         return {}
-    run = client.actor("apify/instagram-comments-scraper").call(
+    run = client.actor("apify/instagram-comment-scraper").call(
         run_input={"directUrls": post_urls, "resultsLimit": 10}
     )
     items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
