@@ -19,7 +19,7 @@ Built to monitor a PR agency's Instagram output without requiring access to thei
 ## How It Works
 
 ```
-GitHub Actions (every 6 hours)
+GitHub Actions (every 6 hours: 00:17, 06:17, 12:17, 18:17 UTC)
         │
         ▼
   audit.py
@@ -42,6 +42,14 @@ GitHub Actions (every 6 hours)
 ```
 
 The GitHub Pages site (`docs/index.html`) reads `data.json` for the post cards and queries the Google Sheets gviz API for the Summary sheet table. Both update automatically on each workflow run.
+
+---
+
+## Scheduling Strategy
+
+The audit runs every 6 hours at **:17 past the hour** (00:17, 06:17, 12:17, 18:17 UTC) instead of at round times (00:00, 06:00, etc).
+
+**Why the offset?** GitHub Actions scheduler experiences contention when thousands of workflows trigger at round times. By scheduling at :17, the audit avoids peak demand and completes with minimal delay. This is a standard DevOps optimization for scheduled tasks.
 
 ---
 

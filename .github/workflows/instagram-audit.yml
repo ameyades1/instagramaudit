@@ -1,7 +1,8 @@
 name: Instagram Audit
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '17 0,6,12,18 * * *'  # Every 6 hours at :17 past the hour (UTC)
+                                  # Offset from round time reduces GitHub Actions scheduler contention
   workflow_dispatch:
 
 jobs:

@@ -45,6 +45,12 @@ python backfill_captions.py
 
 ### Core Components
 
+**`.github/workflows/instagram-audit.yml`** (scheduled workflow)
+- Runs every 6 hours at :17 past the hour (00:17, 06:17, 12:17, 18:17 UTC)
+- Cron schedule: `17 0,6,12,18 * * *` (offset from round time to reduce GitHub Actions scheduler contention)
+- Supports manual trigger via `workflow_dispatch`
+- Timeout: 15 minutes (includes Apify API calls, image downloads, and Google Sheets operations)
+
 **`audit.py`** (main script)
 - Authenticates with Google Sheets API using base64-decoded service account credentials
 - Fetches posts via three Apify actors:
