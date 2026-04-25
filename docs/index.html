@@ -412,32 +412,28 @@
       max-width: 1180px;
       margin: 0 auto;
       padding: 0 clamp(20px,5vw,48px) 48px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-    }
-
-    .about-tile {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px 22px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .about-tile-label {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--copper);
-      margin-bottom: 8px;
-    }
-
-    .about-tile-body {
       font-size: 13px;
       color: var(--ink-light);
-      line-height: 1.65;
+      line-height: 1.8;
+    }
+
+    .about-strip ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .about-strip li {
+      margin-bottom: 12px;
+      padding-left: 24px;
+      position: relative;
+    }
+
+    .about-strip li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--copper);
+      font-weight: bold;
     }
 
     /* ── FOOTER ── */
@@ -524,22 +520,11 @@
 
 <!-- ABOUT STRIP -->
 <div class="about-strip">
-  <div class="about-tile">
-    <div class="about-tile-label">Check Frequency</div>
-    <div class="about-tile-body">Every 6 hours — 00:17, 06:17, 12:17 &amp; 18:17 UTC. Scheduled at :17 to reduce GitHub Actions queue delays.</div>
-  </div>
-  <div class="about-tile">
-    <div class="about-tile-label">Post Types Captured</div>
-    <div class="about-tile-body">Images, Videos, Carousels, Reels, and Stories. Looks back across the last 12 grid posts per run.</div>
-  </div>
-  <div class="about-tile">
-    <div class="about-tile-label">Comments Captured</div>
-    <div class="about-tile-body">Up to 10 comments per post, for posts published within the last 7 days. Deduplicated by comment ID.</div>
-  </div>
-  <div class="about-tile">
-    <div class="about-tile-label">Logged Per Post</div>
-    <div class="about-tile-body">Date &amp; time (IST), caption, post type, and a permanent thumbnail image cached in the repository.</div>
-  </div>
+  <ul>
+    <li>Runs every 6 hours, saves data in a Google Sheet.</li>
+    <li>Captures screenshots of images, videos, carousels, reels, and stories from the last 12 grid posts per run.</li>
+    <li>Logs up to 10 comments per post for posts published within the last 7 days.</li>
+  </ul>
 </div>
 
 <!-- SUMMARY -->
@@ -547,15 +532,15 @@
   <div class="section-header">
     <span class="section-label">Summary</span>
   </div>
-  <p style="font-size:12.5px;color:var(--ink-light);margin-bottom:14px;line-height:1.6;">
-    ⚠ Data for March 2026 will be incorrect as it can download only the last 12 posts at a time. Data from April 2026 onwards will be accurate.
-  </p>
   <div class="summary-table-wrap">
     <table class="summary-table">
       <thead id="summary-thead"><tr><th colspan="4" style="color:rgba(255,255,255,0.7);font-weight:400;">Loading…</th></tr></thead>
       <tbody id="summary-tbody"></tbody>
     </table>
   </div>
+  <p style="font-size:12.5px;color:var(--ink-light);margin-top:14px;line-height:1.6;">
+    ⚠ Data for March 2026 will be incorrect as it can download only the last 12 posts at a time. Data from April 2026 onwards will be accurate.
+  </p>
 </div>
 
 <!-- POSTS -->
