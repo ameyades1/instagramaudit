@@ -154,12 +154,20 @@ def fetch_comments_via_scraper(client, post_urls):
         run_input={"directUrls": post_urls, "resultsLimit": 10}
     )
     items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+    if items:
+        print(f"  Scraper returned {len(items)} items. Sample keys: {list(items[0].keys())}")
+    else:
+        print(f"  Scraper returned 0 items")
+
     comments_by_shortcode = {}
     for item in items:
-        url = item.get("url", "")
-        if "/p/" not in url:
+        url = item.get("url") or item.get("postUrl") or item.get("post_url") or ""
+        if not url or "/p/" not in url:
             continue
-        shortcode = url.split("/p/")[1].split("/")[0]
+        try:
+            shortcode = url.split("/p/")[1].split("/")[0]
+        except IndexError:
+            continue
         if shortcode not in comments_by_shortcode:
             comments_by_shortcode[shortcode] = []
         comments_by_shortcode[shortcode].append(item)

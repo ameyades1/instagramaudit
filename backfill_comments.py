@@ -82,12 +82,13 @@ def fetch_comments_for_posts(client, post_urls):
     # Group comments by post shortcode
     comments_by_post = {}
     for item in items:
-        # Extract shortcode from URL if available, or use the id
-        url = item.get("url", "")
+        url = item.get("url") or item.get("postUrl") or ""
+        shortcode = None
         if "/p/" in url:
-            shortcode = url.split("/p/")[1].split("/")[0]
-        else:
-            shortcode = None
+            try:
+                shortcode = url.split("/p/")[1].split("/")[0]
+            except IndexError:
+                pass
 
         if not shortcode:
             continue
