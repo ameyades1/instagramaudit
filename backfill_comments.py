@@ -71,13 +71,17 @@ def fetch_comments_for_posts(client, post_urls):
         return {}
 
     print(f"Fetching comments for {len(post_urls)} posts...")
-    run = client.actor("apify/instagram-comment-scraper").call(
-        run_input={
-            "directUrls": post_urls,
-            "resultsLimit": 100,  # Get up to 100 comments per post
-        }
-    )
-    items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+    try:
+        run = client.actor("apify/instagram-comment-scraper").call(
+            run_input={
+                "directUrls": post_urls,
+                "resultsLimit": 100,  # Get up to 100 comments per post
+            }
+        )
+        items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+    except Exception as e:
+        print(f"Comments scraper error: {e}")
+        return {}
 
     # Group comments by post shortcode
     comments_by_post = {}
