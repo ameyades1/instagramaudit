@@ -407,6 +407,39 @@
       background: var(--paper);
     }
 
+    /* ── ABOUT STRIP ── */
+    .about-strip {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 clamp(20px,5vw,48px) 48px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .about-tile {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 22px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .about-tile-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--copper);
+      margin-bottom: 8px;
+    }
+
+    .about-tile-body {
+      font-size: 13px;
+      color: var(--ink-light);
+      line-height: 1.65;
+    }
+
     /* ── FOOTER ── */
     footer {
       background: var(--warm-white);
@@ -431,13 +464,17 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 1000px) {
-      .cards-grid { grid-template-columns: repeat(3, 1fr); }
+      .cards-grid  { grid-template-columns: repeat(3, 1fr); }
+      .about-strip { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 640px) {
       .cards-grid { grid-template-columns: repeat(2, 1fr); }
       .nav-subtitle { display: none; }
       .nav-title    { display: none; }
       footer .footer-note:last-child { display: none; }
+    }
+    @media (max-width: 480px) {
+      .about-strip { grid-template-columns: 1fr; }
     }
     @media (max-width: 400px) {
       .cards-grid { grid-template-columns: 1fr; }
@@ -485,6 +522,26 @@
   <p class="hero-meta" id="page-updated" style="margin-top:4px;"></p>
 </div>
 
+<!-- ABOUT STRIP -->
+<div class="about-strip">
+  <div class="about-tile">
+    <div class="about-tile-label">Check Frequency</div>
+    <div class="about-tile-body">Every 6 hours — 00:17, 06:17, 12:17 &amp; 18:17 UTC. Scheduled at :17 to reduce GitHub Actions queue delays.</div>
+  </div>
+  <div class="about-tile">
+    <div class="about-tile-label">Post Types Captured</div>
+    <div class="about-tile-body">Images, Videos, Carousels, Reels, and Stories. Looks back across the last 12 grid posts per run.</div>
+  </div>
+  <div class="about-tile">
+    <div class="about-tile-label">Comments Captured</div>
+    <div class="about-tile-body">Up to 10 comments per post, for posts published within the last 7 days. Deduplicated by comment ID.</div>
+  </div>
+  <div class="about-tile">
+    <div class="about-tile-label">Logged Per Post</div>
+    <div class="about-tile-body">Date &amp; time (IST), caption, post type, and a permanent thumbnail image cached in the repository.</div>
+  </div>
+</div>
+
 <!-- SUMMARY -->
 <div class="summary-section">
   <div class="section-header">
@@ -514,7 +571,7 @@
 <!-- FOOTER -->
 <footer>
   <div class="footer-inner">
-    <span class="footer-note">Auto-updated every 6 hours via GitHub Actions</span>
+    <span class="footer-note">Auto-updated at 00:17, 06:17, 12:17 &amp; 18:17 UTC via GitHub Actions</span>
     <span class="footer-note">Powered by Apify · Google Sheets</span>
   </div>
 </footer>
