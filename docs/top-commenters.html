@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top Commenters — Instagram Audit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper:      #F9F6F0;
+      --warm-white: #FDFBF8;
+      --copper:     #B87333;
+      --copper-lo:  rgba(184,115,51,0.10);
+      --copper-md:  rgba(184,115,51,0.20);
+      --gold:       #E8B84B;
+      --brown:      #5C3010;
+      --text:       #2b3636;
+      --ink-light:  #7A6858;
+      --border:     rgba(92,48,16,0.10);
+      --shadow-sm:  0 8px 24px rgba(0,0,0,0.08);
+      --shadow-lg:  0 24px 60px rgba(92,48,16,0.18);
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--paper);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 clamp(20px,5vw,48px);
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--copper);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .nav-icon svg { width: 18px; height: 18px; color: #fff; }
+
+    .nav-title {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--brown);
+      letter-spacing: -0.01em;
+    }
+
+    .nav-subtitle {
+      font-size: 11px;
+      color: var(--ink-light);
+      letter-spacing: 0.05em;
+      font-weight: 400;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .nav-link {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-light);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: color 0.18s;
+    }
+
+    .nav-link:hover { color: var(--copper); }
+
+    .sheet-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      background: var(--copper);
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 100px;
+      letter-spacing: 0.01em;
+      box-shadow: 0 4px 12px rgba(184,115,51,0.35);
+      transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+
+    .sheet-btn:hover {
+      background: var(--brown);
+      box-shadow: 0 6px 20px rgba(92,48,16,0.35);
+      transform: translateY(-1px);
+    }
+
+    .sheet-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* ── HERO ── */
+    .hero {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: clamp(40px,6vw,72px) clamp(20px,5vw,48px) clamp(24px,3vw,36px);
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--copper);
+      margin-bottom: 16px;
+    }
+
+    .hero-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+
+    h1 {
+      font-family: 'Lora', Georgia, serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 600;
+      line-height: 1.15;
+      color: var(--brown);
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    h1 em {
+      font-style: italic;
+      font-weight: 400;
+      color: var(--copper);
+    }
+
+    .hero-meta {
+      font-size: 13px;
+      color: var(--ink-light);
+    }
+
+    /* ── CONTENT ── */
+    .content {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 clamp(20px,5vw,48px) 80px;
+    }
+
+    .state-msg {
+      padding: 64px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--ink-light);
+      letter-spacing: 0.04em;
+      background: var(--warm-white);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── TABLE ── */
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+    }
+
+    .summary-table thead {
+      background: var(--copper);
+      color: #fff;
+    }
+
+    .summary-table th {
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-family: 'Lora', Georgia, serif;
+    }
+
+    .summary-table td {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .summary-table tbody tr:nth-child(odd) { background: var(--warm-white); }
+    .summary-table tbody tr:hover { background: var(--paper); }
+
+    .summary-table a {
+      color: var(--copper);
+      text-decoration: none;
+      transition: color 0.18s;
+    }
+
+    .summary-table a:hover { color: var(--brown); }
+
+    .comment-count {
+      text-align: right;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--warm-white);
+      border-top: 1px solid var(--border);
+      padding: 28px clamp(20px,5vw,48px);
+    }
+
+    .footer-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .footer-note {
+      font-size: 12px;
+      color: var(--ink-light);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .nav-subtitle { display: none; }
+      .nav-title { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="5"/>
+          <circle cx="12" cy="12" r="4"/>
+          <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+        </svg>
+      </div>
+      <div>
+        <div class="nav-title">Instagram Audit</div>
+        <div class="nav-subtitle">Social Media Monitor</div>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="index.html" class="nav-link">← Dashboard</a>
+      <a href="https://docs.google.com/spreadsheets/d/1NljN0VgtnYm_8EHNodt86Rseoa4UKJPDVtJ8-t8iyNU/edit"
+         target="_blank" rel="noopener" class="sheet-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M3 9h18M9 21V9"/>
+        </svg>
+        <span>View Sheet</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">
+    <div class="hero-dot"></div>
+    Engagement
+  </div>
+  <h1>Top <em>Commenters</em></h1>
+  <p class="hero-meta" id="hero-meta">Most active commenter each month</p>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+  <table class="summary-table" id="table-container">
+    <thead>
+      <tr>
+        <th>Month</th>
+        <th>Top Commenter</th>
+        <th class="comment-count">Comments</th>
+      </tr>
+    </thead>
+    <tbody id="table-body">
+      <tr><td colspan="3" style="text-align:center;"><div class="state-msg" style="box-shadow:none;border:none;background:transparent;padding:0;margin:0;">Loading…</div></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <span class="footer-note">Auto-updated every 6 hours via GitHub Actions</span>
+    <span class="footer-note">Powered by Apify · Google Sheets</span>
+  </div>
+</footer>
+
+<script>
+  const SHEET_ID = '1NljN0VgtnYm_8EHNodt86Rseoa4UKJPDVtJ8-t8iyNU';
+  const MONTHS   = ['January','February','March','April','May','June',
+                    'July','August','September','October','November','December'];
+
+  function cellVal(row, i) {
+    const c = row.c && row.c[i];
+    return (c && c.v != null) ? c.v : null;
+  }
+
+  function formatMonth(monthStr) {
+    // Input: "2026-03"
+    // Output: "March 2026"
+    const [year, month] = monthStr.split('-');
+    const monthIndex = parseInt(month, 10) - 1;
+    return `${MONTHS[monthIndex]} ${year}`;
+  }
+
+  async function load() {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=2057083442&range=A:C&tqx=out:json&headers=1`;
+    try {
+      const res  = await fetch(url);
+      const text = await res.text();
+      const json = JSON.parse(
+        text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/)[1]
+      );
+      const { rows } = json.table;
+
+      if (!rows || rows.length === 0) {
+        document.getElementById('table-body').innerHTML =
+          '<tr><td colspan="3" style="text-align:center;"><div class="state-msg" style="box-shadow:none;border:none;background:transparent;padding:0;margin:0;">No data available.</div></td></tr>';
+        return;
+      }
+
+      const html = rows.map(row => {
+        const monthRaw = cellVal(row, 0) ? String(cellVal(row, 0)) : '';
+        const author   = cellVal(row, 1) ? String(cellVal(row, 1)) : '';
+        const count    = cellVal(row, 2) != null ? Math.round(cellVal(row, 2)) : 0;
+
+        const monthFormatted = formatMonth(monthRaw);
+        const authorLink = author
+          ? `<a href="https://www.instagram.com/${author}/" target="_blank" rel="noopener">@${author}</a>`
+          : '';
+
+        return `
+          <tr>
+            <td>${monthFormatted}</td>
+            <td>${authorLink}</td>
+            <td class="comment-count">${count}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('table-body').innerHTML = html;
+      document.getElementById('hero-meta').textContent = `${rows.length} month${rows.length !== 1 ? 's' : ''} tracked`;
+    } catch (e) {
+      document.getElementById('table-body').innerHTML =
+        '<tr><td colspan="3"><div class="state-msg">Could not load the sheet — ensure the spreadsheet is set to publicly readable.</div></td></tr>';
+      console.error(e);
+    }
+  }
+
+  load();
+</script>
+</body>
+</html>
