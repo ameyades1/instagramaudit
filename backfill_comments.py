@@ -165,11 +165,16 @@ def main():
 
     # Extract post URLs (skip stories)
     post_urls = [p["url"] for p in posts_in_sheet if "/stories/" not in p["url"]]
+    print(f"Post URLs to fetch comments for:")
+    for url in post_urls[:5]:  # Show first 5
+        print(f"  - {url}")
+    if len(post_urls) > 5:
+        print(f"  ... and {len(post_urls) - 5} more")
     print(f"Fetching comments for {len(post_urls)} posts (excluding stories)...")
 
     # Fetch comments for all posts via instagram-comment-scraper
-    comments_by_shortcode = fetch_comments_for_posts(client, post_urls)
-    print(f"Got comments for {len(comments_by_shortcode)} posts")
+    comments_by_url = fetch_comments_for_posts(client, post_urls)
+    print(f"Got comments for {len(comments_by_url)} posts")
 
     # Extract new comments (only those not already in the sheet)
     comment_rows = []
@@ -185,7 +190,10 @@ def main():
 
         # Look up comments by post URL (more reliable than shortcode)
         comments = comments_by_url.get(post_url, [])
-        print(f"Post {post_id}: {len(comments)} comments from scraper")
+        if not comments:
+            print(f"Post {post_id} ({post_url}): 0 comments from scraper")
+        else:
+            print(f"Post {post_id}: {len(comments)} comments from scraper")
 
         for comment in comments:
             comment_id = comment.get("id", "")
