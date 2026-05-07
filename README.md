@@ -98,7 +98,9 @@ You would need significantly more posts or comment volume to approach the $5 mon
 
 ## Dashboard
 
-The GitHub Pages dashboard shows:
+View the live dashboard: **[Instagram Audit Dashboard](https://ameyades1.github.io/instagramaudit/)**
+
+The dashboard shows:
 
 - A **Summary table** pulled live from the Google Sheet (Sheet: `Summary`, columns A–D)
 - The **5 most recent posts** with thumbnails, post type badges, and links
