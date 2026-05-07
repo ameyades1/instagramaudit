@@ -77,10 +77,16 @@ def get_post_details(sheets, sheet_id, posts_since_date=None):
             skipped_count += 1
             continue
 
-        # Parse date
-        try:
-            post_date = datetime.strptime(post_date_str, "%Y-%m-%d").date()
-        except (ValueError, IndexError):
+        # Parse date (handle multiple formats)
+        post_date = None
+        for date_format in ["%Y-%m-%d", "%d-%b-%Y", "%d/%m/%Y"]:
+            try:
+                post_date = datetime.strptime(post_date_str, date_format).date()
+                break
+            except ValueError:
+                continue
+
+        if not post_date:
             print(f"DEBUG: Row {i} - Could not parse date: {post_date_str}")
             skipped_count += 1
             continue
