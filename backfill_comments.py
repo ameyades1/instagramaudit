@@ -58,24 +58,45 @@ def get_post_details(sheets, sheet_id, posts_since_date=None):
         .execute()
     )
     rows = result.get("values", [])
+    print(f"DEBUG: Total rows in Post Details (including header): {len(rows)}")
+
     posts = []
-    for row in rows[1:]:  # Skip header
-        if len(row) >= 4 and row[2]:  # Need post_url and post_id
-            post_date_str = row[0]
-            try:
-                post_date = datetime.strptime(post_date_str, "%Y-%m-%d").date()
-            except (ValueError, IndexError):
-                continue
+    skipped_count = 0
 
-            # Filter by posts_since_date if provided
-            if posts_since_date and post_date < posts_since_date:
-                continue
+    for i, row in enumerate(rows[1:], start=2):  # Skip header, track row number
+        # Check if row has required fields
+        if len(row) < 3:
+            skipped_count += 1
+            continue
 
-            posts.append({
-                "date": post_date_str,
-                "url": row[2],
-                "id": row[3],
-            })
+        post_date_str = row[0]
+        post_url = row[2] if len(row) > 2 else ""
+        post_id = row[3] if len(row) > 3 else ""
+
+        if not post_url:
+            skipped_count += 1
+            continue
+
+        # Parse date
+        try:
+            post_date = datetime.strptime(post_date_str, "%Y-%m-%d").date()
+        except (ValueError, IndexError):
+            print(f"DEBUG: Row {i} - Could not parse date: {post_date_str}")
+            skipped_count += 1
+            continue
+
+        # Filter by posts_since_date if provided
+        if posts_since_date and post_date < posts_since_date:
+            skipped_count += 1
+            continue
+
+        posts.append({
+            "date": post_date_str,
+            "url": post_url,
+            "id": post_id,
+        })
+
+    print(f"DEBUG: Skipped {skipped_count} rows, kept {len(posts)} posts")
     return posts
 
 
