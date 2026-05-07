@@ -1,0 +1,45 @@
+name: Daily Backfill Comments
+
+on:
+  schedule:
+    # Run daily at 08:00 UTC (offset from round hour to reduce scheduler contention)
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+jobs:
+  backfill-comments:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run daily backfill comments (last 24 hours)
+        env:
+          APIFY_API_KEY: ${{ secrets.APIFY_API_KEY }}
+          INSTAGRAM_HANDLE: ${{ secrets.INSTAGRAM_HANDLE }}
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+        run: |
+          YESTERDAY=$(date -u -d '1 day ago' +%Y-%m-%d)
+          echo "Fetching comments for posts from $YESTERDAY onward..."
+          python backfill_comments.py --posts-since-date "$YESTERDAY"
+
+      - name: Commit updated data
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add -A
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update comments via daily backfill [skip ci]"
+
+      - name: Push changes
+        run: |
+          git push origin main || true

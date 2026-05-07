@@ -1,15 +1,19 @@
 """
-One-off script: backfill comments into the Comments sheet.
+Backfill comments into the Comments sheet.
 
-Reads all grid posts from the Post Details sheet, extracts latestComments
-(3-5 most recent per post), and appends new ones to the Comments sheet
-(deduplicating by comment ID).
+Reads posts from the Post Details sheet and fetches all comments via Apify,
+deduplicating by comment ID to avoid duplicate rows in the sheet.
 
-Run once:
+Usage:
+    # Full backfill (all posts from a given date onward)
     APIFY_API_KEY=... GOOGLE_SHEET_ID=... GOOGLE_CREDENTIALS_JSON=... \
-        python backfill_comments.py
+        python backfill_comments.py --posts-since-date 2026-03-01
+
+    # Daily incremental run (capture comments on recent posts)
+    python backfill_comments.py --posts-since-date 2026-05-06
 """
 
+import argparse
 import base64
 import json
 import os
@@ -45,8 +49,8 @@ def get_logged_comment_ids(sheets, sheet_id):
         return set()
 
 
-def get_post_details(sheets, sheet_id):
-    """Read all posts from Post Details sheet."""
+def get_post_details(sheets, sheet_id, posts_since_date=None):
+    """Read posts from Post Details sheet, optionally filtering by date."""
     result = (
         sheets.spreadsheets()
         .values()
@@ -57,8 +61,18 @@ def get_post_details(sheets, sheet_id):
     posts = []
     for row in rows[1:]:  # Skip header
         if len(row) >= 4 and row[2]:  # Need post_url and post_id
+            post_date_str = row[0]
+            try:
+                post_date = datetime.strptime(post_date_str, "%Y-%m-%d").date()
+            except (ValueError, IndexError):
+                continue
+
+            # Filter by posts_since_date if provided
+            if posts_since_date and post_date < posts_since_date:
+                continue
+
             posts.append({
-                "date": row[0],
+                "date": post_date_str,
                 "url": row[2],
                 "id": row[3],
             })
@@ -66,16 +80,16 @@ def get_post_details(sheets, sheet_id):
 
 
 def fetch_comments_for_posts(client, post_urls):
-    """Fetch comments for a list of post URLs using instagram-comment-scraper."""
+    """Fetch all comments for a list of post URLs using instagram-comment-scraper."""
     if not post_urls:
         return {}
 
-    print(f"Fetching comments for {len(post_urls)} posts...")
+    print(f"Fetching comments for {len(post_urls)} posts (unlimited per post)...")
     try:
         run = client.actor("apify/instagram-comment-scraper").call(
             run_input={
                 "directUrls": post_urls,
-                "resultsLimit": 100,  # Get up to 100 comments per post
+                # No resultsLimit — fetch ALL comments per post
             }
         )
         items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
@@ -119,19 +133,40 @@ def append_comments(sheets, sheet_id, rows):
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Backfill comments into the Comments sheet."
+    )
+    parser.add_argument(
+        "--posts-since-date",
+        type=str,
+        default=None,
+        help="Only fetch comments for posts published on or after this date (YYYY-MM-DD). "
+             "If omitted, fetches for all posts.",
+    )
+    args = parser.parse_args()
+
+    posts_since_date = None
+    if args.posts_since_date:
+        try:
+            posts_since_date = datetime.strptime(args.posts_since_date, "%Y-%m-%d").date()
+            print(f"Filtering posts from {posts_since_date} onward")
+        except ValueError:
+            print(f"Error: Invalid date format '{args.posts_since_date}'. Use YYYY-MM-DD.")
+            return
+
     sheet_id = os.environ["GOOGLE_SHEET_ID"]
     handle = os.environ["INSTAGRAM_HANDLE"]
 
     sheets = get_sheets_client()
     client = ApifyClient(os.environ["APIFY_API_KEY"])
 
-    # Get already-logged comment IDs
+    # Get already-logged comment IDs (for deduplication)
     logged_comment_ids = get_logged_comment_ids(sheets, sheet_id)
     print(f"Already logged: {len(logged_comment_ids)} comment IDs")
 
-    # Get all posts from the sheet
-    posts_in_sheet = get_post_details(sheets, sheet_id)
-    print(f"Found {len(posts_in_sheet)} posts in Post Details sheet")
+    # Get posts from the sheet, optionally filtered by date
+    posts_in_sheet = get_post_details(sheets, sheet_id, posts_since_date)
+    print(f"Found {len(posts_in_sheet)} posts to process")
 
     # Extract post URLs (skip stories)
     post_urls = [p["url"] for p in posts_in_sheet if "/stories/" not in p["url"]]
@@ -141,8 +176,10 @@ def main():
     comments_by_shortcode = fetch_comments_for_posts(client, post_urls)
     print(f"Got comments for {len(comments_by_shortcode)} posts")
 
-    # Extract new comments
+    # Extract new comments (only those not already in the sheet)
     comment_rows = []
+    duplicate_count = 0
+
     for post_detail in posts_in_sheet:
         post_id = post_detail["id"]
         post_url = post_detail["url"]
@@ -157,13 +194,12 @@ def main():
         for comment in comments:
             comment_id = comment.get("id", "")
             if comment_id in logged_comment_ids:
-                print(f"  Comment {comment_id}: already logged (skipped)")
+                duplicate_count += 1
                 continue
 
             ts = datetime.fromisoformat(comment["timestamp"].replace("Z", "+00:00"))
             comment_ist = ts.astimezone(IST)
 
-            print(f"  Comment {comment_id}: new, will add")
             comment_rows.append([
                 post_id,
                 post_url,
@@ -174,11 +210,13 @@ def main():
                 comment_id,
             ])
 
+    print(f"Skipped {duplicate_count} duplicate comments (already in sheet)")
+
     if comment_rows:
         append_comments(sheets, sheet_id, comment_rows)
         print(f"Appended {len(comment_rows)} new comments.")
     else:
-        print("No new comments found.")
+        print("No new comments to add.")
 
 
 if __name__ == "__main__":
