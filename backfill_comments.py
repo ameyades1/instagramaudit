@@ -97,26 +97,21 @@ def fetch_comments_for_posts(client, post_urls):
         print(f"Comments scraper error: {e}")
         return {}
 
-    # Group comments by post shortcode
-    comments_by_post = {}
+    # Group comments by post URL (more reliable than extracting shortcode)
+    comments_by_url = {}
     for item in items:
-        url = item.get("url") or item.get("postUrl") or ""
-        shortcode = None
-        if "/p/" in url:
-            try:
-                shortcode = url.split("/p/")[1].split("/")[0]
-            except IndexError:
-                pass
+        # Try multiple URL field names from Apify
+        url = item.get("url") or item.get("postUrl") or item.get("post_url") or ""
 
-        if not shortcode:
+        if not url or "/p/" not in url:
             continue
 
-        if shortcode not in comments_by_post:
-            comments_by_post[shortcode] = []
+        if url not in comments_by_url:
+            comments_by_url[url] = []
 
-        comments_by_post[shortcode].append(item)
+        comments_by_url[url].append(item)
 
-    return comments_by_post
+    return comments_by_url
 
 
 def append_comments(sheets, sheet_id, rows):
@@ -188,7 +183,8 @@ def main():
         if "/stories/" in post_url:
             continue
 
-        comments = comments_by_shortcode.get(post_id, [])
+        # Look up comments by post URL (more reliable than shortcode)
+        comments = comments_by_url.get(post_url, [])
         print(f"Post {post_id}: {len(comments)} comments from scraper")
 
         for comment in comments:
