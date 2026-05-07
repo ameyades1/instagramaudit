@@ -58,15 +58,11 @@ def get_post_details(sheets, sheet_id, posts_since_date=None):
         .execute()
     )
     rows = result.get("values", [])
-    print(f"DEBUG: Total rows in Post Details (including header): {len(rows)}")
-
     posts = []
-    skipped_count = 0
 
-    for i, row in enumerate(rows[1:], start=2):  # Skip header, track row number
+    for row in rows[1:]:  # Skip header
         # Check if row has required fields
         if len(row) < 3:
-            skipped_count += 1
             continue
 
         post_date_str = row[0]
@@ -74,7 +70,6 @@ def get_post_details(sheets, sheet_id, posts_since_date=None):
         post_id = row[3] if len(row) > 3 else ""
 
         if not post_url:
-            skipped_count += 1
             continue
 
         # Parse date (handle multiple formats)
@@ -87,13 +82,10 @@ def get_post_details(sheets, sheet_id, posts_since_date=None):
                 continue
 
         if not post_date:
-            print(f"DEBUG: Row {i} - Could not parse date: {post_date_str}")
-            skipped_count += 1
             continue
 
         # Filter by posts_since_date if provided
         if posts_since_date and post_date < posts_since_date:
-            skipped_count += 1
             continue
 
         posts.append({
@@ -102,7 +94,6 @@ def get_post_details(sheets, sheet_id, posts_since_date=None):
             "id": post_id,
         })
 
-    print(f"DEBUG: Skipped {skipped_count} rows, kept {len(posts)} posts")
     return posts
 
 
@@ -192,12 +183,7 @@ def main():
 
     # Extract post URLs (skip stories)
     post_urls = [p["url"] for p in posts_in_sheet if "/stories/" not in p["url"]]
-    print(f"Post URLs to fetch comments for:")
-    for url in post_urls[:5]:  # Show first 5
-        print(f"  - {url}")
-    if len(post_urls) > 5:
-        print(f"  ... and {len(post_urls) - 5} more")
-    print(f"Fetching comments for {len(post_urls)} posts (excluding stories)...")
+    print(f"Fetching comments for {len(post_urls)} posts...")
 
     # Fetch comments for all posts via instagram-comment-scraper
     comments_by_url = fetch_comments_for_posts(client, post_urls)
@@ -217,9 +203,7 @@ def main():
 
         # Look up comments by post URL (more reliable than shortcode)
         comments = comments_by_url.get(post_url, [])
-        if not comments:
-            print(f"Post {post_id} ({post_url}): 0 comments from scraper")
-        else:
+        if comments:
             print(f"Post {post_id}: {len(comments)} comments from scraper")
 
         for comment in comments:
