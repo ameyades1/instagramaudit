@@ -1,8 +1,11 @@
 name: Backfill Comments
 on:
-  workflow_dispatch: # Manual trigger only — run from Actions tab as needed
-
-
+  workflow_dispatch:
+    inputs:
+      posts_since_date:
+        description: 'Only fetch comments for posts from this date onward (YYYY-MM-DD). Omit to fetch all posts.'
+        required: false
+        default: ''
 
 jobs:
   backfill:
@@ -14,9 +17,17 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -r requirements.txt
-      - run: python backfill_comments.py
+      - name: Run backfill comments
         env:
           APIFY_API_KEY:           ${{ secrets.APIFY_API_KEY }}
           GOOGLE_SHEET_ID:         ${{ secrets.GOOGLE_SHEET_ID }}
           GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
           INSTAGRAM_HANDLE:        ${{ secrets.INSTAGRAM_HANDLE }}
+        run: |
+          if [ -z "${{ github.event.inputs.posts_since_date }}" ]; then
+            echo "Running backfill for all posts..."
+            python backfill_comments.py
+          else
+            echo "Running backfill for posts since ${{ github.event.inputs.posts_since_date }}..."
+            python backfill_comments.py --posts-since-date "${{ github.event.inputs.posts_since_date }}"
+          fi
