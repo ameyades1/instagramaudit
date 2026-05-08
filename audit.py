@@ -352,7 +352,17 @@ def update_data_json(new_entry):
         data = {"posts": []}
 
     data["posts"].insert(0, new_entry)
-    data["posts"] = data["posts"][:20]
+
+    # Deduplicate by post ID, keeping the first occurrence (newest)
+    seen_ids = set()
+    deduped_posts = []
+    for post in data["posts"]:
+        post_id = post.get("id")
+        if post_id and post_id not in seen_ids:
+            deduped_posts.append(post)
+            seen_ids.add(post_id)
+
+    data["posts"] = deduped_posts[:20]
     data["updated"] = datetime.now(IST).strftime("%Y-%m-%d %H:%M IST")
 
     DATA_JSON.parent.mkdir(parents=True, exist_ok=True)
