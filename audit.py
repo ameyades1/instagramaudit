@@ -362,7 +362,8 @@ def update_data_json(new_entry):
             deduped_posts.append(post)
             seen_ids.add(post_id)
 
-    data["posts"] = deduped_posts[:20]
+    # Keep all posts (no arbitrary limit) — complete audit history
+    data["posts"] = deduped_posts
     data["updated"] = datetime.now(IST).strftime("%Y-%m-%d %H:%M IST")
 
     DATA_JSON.parent.mkdir(parents=True, exist_ok=True)
