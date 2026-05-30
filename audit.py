@@ -152,7 +152,8 @@ def fetch_comments_via_scraper(client, post_urls):
         return {}
     try:
         run = client.actor("apify/instagram-comment-scraper").call(
-            run_input={"directUrls": post_urls, "resultsLimit": 10}
+            run_input={"directUrls": post_urls, "resultsLimit": 10},
+            logger=None,
         )
         items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
     except Exception as e:
@@ -176,7 +177,8 @@ def fetch_comments_via_scraper(client, post_urls):
 
 def fetch_grid_posts(client, handle):
     run = client.actor("apify/instagram-profile-scraper").call(
-        run_input={"usernames": [handle]}
+        run_input={"usernames": [handle]},
+        logger=None,
     )
     items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
     if not items:
@@ -190,7 +192,8 @@ def fetch_grid_posts(client, handle):
 def fetch_reels(client, handle):
     try:
         run = client.actor("apify/instagram-reel-scraper").call(
-            run_input={"username": handle, "resultsLimit": 12}
+            run_input={"username": handle, "resultsLimit": 12},
+            logger=None,
         )
         items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
         for item in items:
@@ -208,7 +211,8 @@ def fetch_reels(client, handle):
 def fetch_stories(client, handle):
     try:
         run = client.actor("apify/instagram-story-scraper").call(
-            run_input={"usernames": [handle]}
+            run_input={"usernames": [handle]},
+            logger=None,
         )
         items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
         normalized = []

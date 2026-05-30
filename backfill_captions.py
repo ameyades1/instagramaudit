@@ -34,7 +34,8 @@ def fetch_captions(client, post_urls):
             "directUrls": post_urls,
             "resultsType": "posts",
             "resultsLimit": len(post_urls),
-        }
+        },
+        logger=None,
     )
     items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
     # Build a map of shortcode -> caption
