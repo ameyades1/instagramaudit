@@ -108,7 +108,8 @@ def fetch_comments_for_posts(client, post_urls):
             run_input={
                 "directUrls": post_urls,
                 # No resultsLimit — fetch ALL comments per post
-            }
+            },
+            logger=None,
         )
         items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
     except Exception as e:
