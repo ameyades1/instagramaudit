@@ -155,7 +155,7 @@ def fetch_comments_via_scraper(client, post_urls):
             run_input={"directUrls": post_urls, "resultsLimit": 10},
             logger=None,
         )
-        items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+        items = list(client.dataset(run.default_dataset_id).iterate_items())
     except Exception as e:
         print(f"Comments scraper error: {e}")
         return {}
@@ -180,7 +180,7 @@ def fetch_grid_posts(client, handle):
         run_input={"usernames": [handle]},
         logger=None,
     )
-    items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+    items = list(client.dataset(run.default_dataset_id).iterate_items())
     if not items:
         return []
     posts = items[0].get("latestPosts", [])
@@ -195,7 +195,7 @@ def fetch_reels(client, handle):
             run_input={"username": handle, "resultsLimit": 12},
             logger=None,
         )
-        items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+        items = list(client.dataset(run.default_dataset_id).iterate_items())
         for item in items:
             item.setdefault("postType", "Reel")
             item.setdefault("shortCode", item.get("shortcode", ""))
@@ -214,7 +214,7 @@ def fetch_stories(client, handle):
             run_input={"usernames": [handle]},
             logger=None,
         )
-        items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+        items = list(client.dataset(run.default_dataset_id).iterate_items())
         normalized = []
         for item in items:
             story_id = str(item.get("id", ""))
