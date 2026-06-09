@@ -213,7 +213,13 @@ def main():
                 duplicate_count += 1
                 continue
 
-            ts = datetime.fromisoformat(comment["timestamp"].replace("Z", "+00:00"))
+            # Try multiple field names for timestamp (API changed)
+            timestamp_str = comment.get("timestamp") or comment.get("createdAt") or comment.get("created_at")
+            if not timestamp_str:
+                print(f"Warning: Comment {comment_id} has no timestamp field, skipping")
+                continue
+
+            ts = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
             comment_ist = ts.astimezone(IST)
 
             comment_rows.append([
