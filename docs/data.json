@@ -1,6 +1,14 @@
 {
   "posts": [
     {
+      "date": "2026-06-10",
+      "time": "09:00",
+      "url": "https://www.instagram.com/p/DZY-1-zsRE9/",
+      "id": "DZY-1-zsRE9",
+      "imageUrl": "images/2026-06-10-DZY-1-zsRE9.jpg",
+      "type": "Image"
+    },
+    {
       "date": "2026-06-08",
       "time": "18:23",
       "url": "https://www.instagram.com/p/DZU1oOlikvd/",
@@ -257,5 +265,5 @@
       "type": "Video"
     }
   ],
-  "updated": "2026-06-10 01:51 IST"
+  "updated": "2026-06-10 10:22 IST"
 }
