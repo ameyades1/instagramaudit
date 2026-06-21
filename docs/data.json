@@ -1,6 +1,14 @@
 {
   "posts": [
     {
+      "date": "2026-06-21",
+      "time": "13:46",
+      "url": "https://www.instagram.com/p/DZ10O0GzQ6B/",
+      "id": "DZ10O0GzQ6B",
+      "imageUrl": "images/2026-06-21-DZ10O0GzQ6B.jpg",
+      "type": "Video"
+    },
+    {
       "date": "2026-06-20",
       "time": "19:53",
       "url": "https://www.instagram.com/p/DZz5fklFAkg/",
@@ -297,5 +305,5 @@
       "type": "Video"
     }
   ],
-  "updated": "2026-06-21 10:50 IST"
+  "updated": "2026-06-21 15:37 IST"
 }
