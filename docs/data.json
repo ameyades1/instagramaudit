@@ -1,6 +1,22 @@
 {
   "posts": [
     {
+      "date": "2026-08-01",
+      "time": "20:43",
+      "url": "https://www.instagram.com/p/DbgIlg8kedk/",
+      "id": "DbgIlg8kedk",
+      "imageUrl": "images/2026-08-01-DbgIlg8kedk.jpg",
+      "type": "Carousel"
+    },
+    {
+      "date": "2026-08-01",
+      "time": "20:34",
+      "url": "https://www.instagram.com/p/DbgHl4nCjKM/",
+      "id": "DbgHl4nCjKM",
+      "imageUrl": "images/2026-08-01-DbgHl4nCjKM.jpg",
+      "type": "Video"
+    },
+    {
       "date": "2026-07-31",
       "time": "20:59",
       "url": "https://www.instagram.com/p/Dbdlnr8CDw7/",
@@ -521,5 +537,5 @@
       "type": "Video"
     }
   ],
-  "updated": "2026-08-01 19:29 IST"
+  "updated": "2026-08-02 01:07 IST"
 }
