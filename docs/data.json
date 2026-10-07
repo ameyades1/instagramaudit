@@ -1,6 +1,14 @@
 {
   "posts": [
     {
+      "date": "2026-10-07",
+      "time": "14:54",
+      "url": "https://www.instagram.com/p/DeMB98TjSEL/",
+      "id": "DeMB98TjSEL",
+      "imageUrl": "images/2026-10-07-DeMB98TjSEL.jpg",
+      "type": "Carousel"
+    },
+    {
       "date": "2026-10-03",
       "time": "18:11",
       "url": "https://www.instagram.com/p/DeCFSLFEe0X/",
@@ -945,5 +953,5 @@
       "type": "Video"
     }
   ],
-  "updated": "2026-10-07 11:38 IST"
+  "updated": "2026-10-07 19:04 IST"
 }
