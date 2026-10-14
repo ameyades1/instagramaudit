@@ -1,6 +1,14 @@
 {
   "posts": [
     {
+      "date": "2026-10-14",
+      "time": "12:28",
+      "url": "https://www.instagram.com/p/Dedy3boDQV4/",
+      "id": "Dedy3boDQV4",
+      "imageUrl": "images/2026-10-14-Dedy3boDQV4.jpg",
+      "type": "Carousel"
+    },
+    {
       "date": "2026-10-13",
       "time": "09:09",
       "url": "https://www.instagram.com/p/Dea3EMMT1Yg/",
@@ -985,5 +993,5 @@
       "type": "Video"
     }
   ],
-  "updated": "2026-10-14 10:31 IST"
+  "updated": "2026-10-14 17:32 IST"
 }
