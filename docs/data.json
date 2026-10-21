@@ -2,6 +2,14 @@
   "posts": [
     {
       "date": "2026-10-21",
+      "time": "19:10",
+      "url": "https://www.instagram.com/p/DewiVP7DFFd/",
+      "id": "DewiVP7DFFd",
+      "imageUrl": "images/2026-10-21-DewiVP7DFFd.jpg",
+      "type": "Carousel"
+    },
+    {
+      "date": "2026-10-21",
       "time": "13:27",
       "url": "https://www.instagram.com/p/Dev7KBUDMpv/",
       "id": "Dev7KBUDMpv",
@@ -1033,5 +1041,5 @@
       "type": "Video"
     }
   ],
-  "updated": "2026-10-21 17:29 IST"
+  "updated": "2026-10-21 22:49 IST"
 }
