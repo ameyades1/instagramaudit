@@ -1,6 +1,14 @@
 {
   "posts": [
     {
+      "date": "2026-11-02",
+      "time": "21:53",
+      "url": "https://www.instagram.com/p/DfPulaBlE7-/",
+      "id": "DfPulaBlE7-",
+      "imageUrl": "images/2026-11-02-DfPulaBlE7-.jpg",
+      "type": "Carousel"
+    },
+    {
       "date": "2026-11-01",
       "time": "23:23",
       "url": "https://www.instagram.com/p/DfNUCq3HxIv/",
@@ -1113,5 +1121,5 @@
       "type": "Video"
     }
   ],
-  "updated": "2026-11-02 11:50 IST"
+  "updated": "2026-11-03 03:16 IST"
 }
